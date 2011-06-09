@@ -25,10 +25,9 @@ class DB{
 				$this->fire_error( "Modo de erro invalido!" );   
 			}
 			$this->error_mode = $b;
-		
 		}else{
-			$this->fire_error( "Tentativa de setar attributos somente leitura! ".
-				"Use o metodo set_module caso queira configurar modelos!" );
+			$this->fire_error( "Tentativa de setar attributos somente leitura ".
+				"(use o metodo set_module caso queira configurar modelos)" );
 		}
 	}
 
@@ -38,13 +37,14 @@ class DB{
 			$bt = debug_backtrace();
 			$d = false;
 			foreach( $bt as $t ){
-				if( $t['class'] === 'DB' ){//  && basename($t['file']) == 'db.php'
+				 // && basename($t['file']) == 'db.php' 
+				if( $t['class'] === 'DB' ){ // aqui esta o segredo
 					$d = $t;  
 					continue;
 				}                 
 				break;
 			}
-			echo "<br/><strong>DB Error</strong>: ";
+			echo "<br/><strong>Error</strong>: ";
 			echo htmlspecialchars( $d['function'] );
 			echo '(';
 			$c = 0; 
@@ -93,15 +93,13 @@ class DB{
 	public function _query( $q ){
 		return $this->__query( $q );
 	}
-	public function _error( $err ){
-		
-	}
 	public function __query( &$q ){
 		
 		// lidando com as transactions
 		// esperando o $db->end();
 		if( $this->smart_rollback ){
 			return false;
+
 		}else if( $this->_has_validation_error ){
 			if( $this->_first_query_with_error ){
 				$this->_first_query_with_error = false;
@@ -113,37 +111,37 @@ class DB{
 			$this->_has_validation_error = false;
 			// se for difserente de rollback, algo estah errado
 			
-		}else if( !$this->_has_validation_error ){
-			$this->errors = false;
-			
 		}else{
-			$this->trans_errno = false;
-		}
-		
+			$this->validation_errors = false;
+		}	
 		if( $this->mysqli_mode ){
 			$r = $this->link->query( $q );
 		}else{
 			$r = mysql_query( $q, $this->link );
 		}
+
+		$err;
+		if( $this->mysqli_mode )
+			$err = $this->link->errno;
+		$err = mysql_errno($this->link);   
+
+		if( $err && $this->transaction_count ){
+			$this->trans_errno = $err;               
+			if( $this->mysqli_mode )
+				$this->trans_error = $this->link->errno;
+			$this->trans_error = mysql_errno($this->link);
 			
-		if( $this->db_errno() && $this->transaction_count ){
-			$this->trans_errno = $this->db_errno();
-			$this->trans_error = $this->db_error();
 			$this->_query('ROLLBACK');
 			$this->smart_rollback = true;
 			return false;
-			// guarda erro e errno
-			// $this->transaction_count = 0;
-			// die('depois melhoro isso!');
 		}
 		
-		if( $this->db_errno() ){      
-			if( $this->db_error == 2 ){
-				// trigger_error( $this->db_error(), E_USER_ERROR ); 
-				trigger_error( $this->db_error() ); 
-			}
+		if( $err ){      
+			$this->fire_error( $this->db_error() );
 			return false;
-		}
+		}             
+		if( $r === true )
+			return true;
 		return new DB_Result( $r, $this->link );
 	}
 	public function select_db( $db ){
@@ -218,19 +216,19 @@ class DB{
 	}
 	
 	
-	private $errors = false;
+	private $validation_errors = false;
 	public $_has_validation_error = false;
 	private $_first_query_with_error = false;
 	public function errors(){
 		$a = func_get_args();
-		if( count($a) && $this->errors )
-			return $this->errors->messages( $a );
-		return $this->errors;
+		if( count($a) && $this->validation_errors )
+			return $this->validation_errors->messages( $a );
+		return $this->validation_errors;
 	}
 	
 	public function _add_error( $model, $field, $err ){
-		if( !$this->errors ){
-			$this->errors = new ErrorList();
+		if( !$this->validation_errors ){
+			$this->validation_errors = new ErrorList();
 		}
 		
 		if( !$this->_has_validation_error ){
@@ -239,11 +237,11 @@ class DB{
 		$this->_has_validation_error = true;
 		// $model,
 		if( $err == 'grande')
-			$this->errors->_add(  $field, $err, 'Grande!' );
+			$this->validation_errors->_add(  $field, $err, 'Grande!' );
 		else if( $err == 'pequeno' )
-			$this->errors->_add(  $field, $err, 'Pequeno!' );
+			$this->validation_errors->_add(  $field, $err, 'Pequeno!' );
 		else
-			$this->errors->_add(  $field, $err, 'Coisa Errada!' );
+			$this->validation_errors->_add(  $field, $err, 'Coisa Errada!' );
 	}
 	private $trans_error = false;
 	private $trans_errno = false;

@@ -36,10 +36,8 @@ function match( $msg, $result, $espected ){
 		echo "</td>";              
 	    echo "<td>";    
 		echo "sucess! ";
-		echo "</td><td>";
+		echo "</td><td colspan=\"2\">";
 		var_export( $result );
-		echo "</td><td>";
-		var_export( $espected );
 		echo "</td></tr>";
 	}
 }
