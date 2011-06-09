@@ -342,7 +342,7 @@ class Model{
 				
 				$specials[0][] = $attr;
 				// if( isset($attr['model']) || is_array($attr['content']) ){
-					$need_transaction = true;
+				$need_transaction = true;
 				// }
 				// $entries[0]['!'][] =& $attr;
 				// insiste em nao ter nome
