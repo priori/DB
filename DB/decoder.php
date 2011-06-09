@@ -48,7 +48,8 @@ class Decoder{
 			$c = $m[1];
 			if( $ch == ':' && !$parentesis_count ){
 				if( $c > 0 ){
-					$r = Decoder::mmacthed($matches, $ant, $attr_name, substr($text, $last, $c-$last));
+					$r = Decoder::mmacthed($matches, $ant, $attr_name, 
+							substr($text, $last, $c-$last));
 					if( !$r )return false;
 				}
 				$ant = $ch;
@@ -61,7 +62,8 @@ class Decoder{
 				}
 				$parentesis_count++;
 				if( $c > 0 ){
-					$r = Decoder::mmacthed($matches, $ant, $attr_name, substr($text, $last, $c-$last));
+					$r = Decoder::mmacthed($matches, $ant, $attr_name, 
+							substr($text, $last, $c-$last));
 					if( !$r )return false;
 				}
 				$ant = $ch;
@@ -73,7 +75,8 @@ class Decoder{
 					continue;
 				}
 				if( $c > 0 ){
-					$r = Decoder::mmacthed($matches, $ant, $attr_name, substr($text, $last, $c-$last));
+					$r = Decoder::mmacthed($matches, $ant, $attr_name, 
+							substr($text, $last, $c-$last));
 					if( !$r )return false;
 				}
 				$ant = $ch;
