@@ -1,7 +1,8 @@
 <?php 
 
-require_once dirname(__FILE__).'/db/db.php';
-require_once dirname(__FILE__).'/db/db_result.php';
-require_once dirname(__FILE__).'/db/decode.php';
-require_once dirname(__FILE__).'/db/error.php';
-require_once dirname(__FILE__).'/db/model.php';
+require_once dirname(__FILE__).'/DB/db.php';
+require_once dirname(__FILE__).'/DB/db_result.php';
+require_once dirname(__FILE__).'/DB/decoder.php';
+require_once dirname(__FILE__).'/DB/error.php';
+require_once dirname(__FILE__).'/DB/model.php';
+

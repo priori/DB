@@ -5,7 +5,7 @@ class Decoder{
 
 	static function mmacthed( &$mats, &$ant, &$attr_name, $content ){
 		if( $ant === false ){
-			$mats['name'] =& $content;
+			$mats[] =& $content;
 		}else{
 			if( $ant === ':' ){
 				if( $attr_name !== false ){
@@ -38,13 +38,15 @@ class Decoder{
 		$matches = array();
 		$len = strlen($text);
 		$last = 0;
-		$scape = false;
 		$ant = false;
-		for( $c=0; $c <$len; $c++ ){
-			$ch = $text{$c};
-			if( $scape ){
-				$scape = false;
-			}elseif( $ch == ':' && !$parentesis_count ){
+
+		$ms;
+        preg_match_all( "/[:)(]/",$text,$ms,PREG_OFFSET_CAPTURE); 
+		$ms = $ms[0];
+		foreach( $ms as $m ){
+			$ch = $m[0];
+			$c = $m[1];
+			if( $ch == ':' && !$parentesis_count ){
 				if( $c > 0 ){
 					$r = Decoder::mmacthed($matches, $ant, $attr_name, substr($text, $last, $c-$last));
 					if( !$r )return false;
@@ -77,8 +79,6 @@ class Decoder{
 				$ant = $ch;
 				$last = $c+1;
 
-			}elseif( $ch == '\\' ){
-				$scape = true;
 			}
 		}
 		$ch = $text{$len-1};
@@ -90,7 +90,7 @@ class Decoder{
 				$matches[$attr_name] = true;
 			}
 			if( $ant === false ){
-				$matches['name'] = $text;
+				$matches[] = $text;
 			}else{
 				$matches[substr($text, $last, $c-$last )] = true;
 			}
@@ -99,22 +99,12 @@ class Decoder{
 
 	}
 
-	static function decode(){
-		echo "super";
-	}
-
 
 }
 
-$c = new Decoder();
-
-echo '<pre>';
-var_dump( Decoder::decode_string( "asdfasdf:asdfasdf" ) );
-var_dump( Decoder::decode_string( "asdfasdf:asdfasdf(asdf\\)asd(asdf)fasdf)" ) );
-var_dump( Decoder::decode_string( ":asdfasdf(data)" ) );
-var_dump( Decoder::decode_string( ":asdfasdf" ) );
-var_dump( Decoder::decode_string( "asdfasdf" ) );
 
 
 
-var_dump( preg_split( "/[:\\\\()]/" , "asdfasdf:asdfasdff(asdf\\)asd(asdf)fasdf)") );
+
+
+
