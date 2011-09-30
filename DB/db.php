@@ -3,8 +3,8 @@
 
 class DB{
 	
-	public $link;
-	
+	public $link; 
+
 	private $invalid_value = 1;
 	private $db_error = 2;
 	private $lib_error = 2;
