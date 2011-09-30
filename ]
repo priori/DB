@@ -118,7 +118,7 @@ class Decoder{
 				if( isset($aux['value']) ){
 					return 1;
 				}
-				$aux['content'] = $v;
+				$aux['value'] = $v;
 
 			}elseif( $c === $count && is_string($v) ){
 				$count++;
@@ -127,10 +127,10 @@ class Decoder{
 				return 2;
 			}
 			if( isset($aux[0]) ){
-				$r[$aux[0]] =& $aux;
+				$r[$aux[0]] = $r;
 				unset( $aux[0] );
 			}else{
-				$r[] =& $aux;
+				$r[] = $aux;
 			}
 		}    
 		return $r;   

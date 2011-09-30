@@ -38,27 +38,56 @@ class DB{
 			$d = false;
 			foreach( $bt as $t ){
 				 // && basename($t['file']) == 'db.php' 
-				if( $t['class'] === 'DB' ){ // aqui esta o segredo
+				if( $t['class'] === 'DB' ||
+						$t['class'] === 'Model'	){ // aqui esta o segredo
 					$d = $t;  
 					continue;
 				}                 
 				break;
 			}
 			echo "<br/><strong>Error</strong>: ";
-			echo htmlspecialchars( $d['function'] );
-			echo '(';
-			$c = 0; 
-			foreach( $d['args'] as $arg ){          
-				if( $c > 5 ){
-					echo '...';
-					break;
-				}                                   
-				if( $c > 0 )
-					echo ', ';
-				echo htmlspecialchars( $arg );     
-				$c++;
+			if( $d['function'] === 'offsetSet' ){ // && mais alguma coisa
+				if( isset($d['class']) ){
+					echo $d['class'];
+				}
+				if( $d['args'][0] === NULL ){
+					echo '[] = ';
+				}else{
+					echo '[';
+					if( is_string($d['args'][0]) ){
+						echo htmlspecialchars( $d['args'][0] );
+					}else{
+						echo $arg;
+					}
+					echo ']';
+				}
+				if( is_string($d['args'][1]) ){
+					echo htmlspecialchars( $d['args'][1] );
+				}else{
+					echo $d['args'][1];
+				}
+				echo ' ';
+			
+			}else{
+				echo htmlspecialchars( $d['function'] );
+				echo '(';
+				$c = 0; 
+				foreach( $d['args'] as $arg ){          
+					if( $c > 5 ){
+						echo '...';
+						break;
+					}                                   
+					if( $c > 0 )
+						echo ', ';
+					if( is_string($arg) ){
+						echo htmlspecialchars( $arg );
+					}else{
+						echo $arg;
+					}
+					$c++;
+				}
+				echo ') ';
 			}
-			echo ') ';
 			echo $err;
 			echo " in <strong>";
 			echo htmlspecialchars( $d['file'] );
@@ -113,7 +142,8 @@ class DB{
 			
 		}else{
 			$this->validation_errors = false;
-		}	
+		}	            
+		echo $q.'<br/>';  
 		if( $this->mysqli_mode ){
 			$r = $this->link->query( $q );
 		}else{
@@ -123,7 +153,8 @@ class DB{
 		$err;
 		if( $this->mysqli_mode )
 			$err = $this->link->errno;
-		$err = mysql_errno($this->link);   
+		else
+			$err = mysql_errno($this->link);   
 
 		if( $err && $this->transaction_count ){
 			$this->trans_errno = $err;               

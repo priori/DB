@@ -7,8 +7,6 @@ function decode( $string, $expected = array() ){
 	match( 'decoding "'.htmlspecialchars($string).'"', 
 		Decoder::decode_string($string),
 		$expected );
-
-
 }
 
 

@@ -9,6 +9,9 @@ include 'include.php';
 <body>
 <?php
 
+$db = new DB();
+$db->select_db('test');
+$db->pessoa[] = array('nome'=>'super');
 
 ?>
 </body>

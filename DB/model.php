@@ -1,13 +1,12 @@
 <?php 
 
 
-class Model{
+class Model  implements arrayaccess{
 	
-	private $link;
+	private $db;
 	private $args;
 	private $alias; // model name
 	private $name; // table scaped name
-
 
 	public function Model( &$link, &$name, $args = false )
 	{
@@ -22,16 +21,18 @@ class Model{
 		return '`'.$this->name.'`';
 	}
 
-	public function set( $where, $args )
+	// set, update
+	public function set( $id, $args )
 	{
-		$args = decode( $args );
-		if( is_array($where) )
-			$where = decode( $where );
-		return $this->_set( $where, $args );
+		$args = Decoder::decode_array( $args );
+		if( is_array($id) || is_object($id) ){
+			// não boa ideia, e a chave primaira for com duas colunas?
+			$this->db->fire_error("Id não é um valor válido");
+			// $id = Decoder::decode_string( $id );
+		}
+		return $this->_set( $id, $args );
 	}
-	
-	
-	public function _set(&$where, &$attrs)
+	public function _set(&$id, &$attrs)
 	{
 		$n = array();
 		$q = array();
@@ -63,13 +64,13 @@ class Model{
 		
 		$b = false;
 		$aux = array();
-		if( !is_array($where) ){
+		if( !is_array($id) ){
 			
 			$q[] = '`id` = \'';
-			$q[] = $this->db->escape($where);
+			$q[] = $this->db->escape($id);
 			$q[] = '\'';
 			
-		}else foreach( $where as $v ){
+		}else foreach( $id as $v ){
 			if( $b ){
 				$q[] = ' AND ';
 			}else{
@@ -80,24 +81,12 @@ class Model{
 			$q[] = '` = ';
 			$this->add_val( $q, $v, $aux );
 		}
-		// $q[] = $where;
-		
+		// $q[] = $id;
 		
 		return $this->db->_query(implode('',$q));
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	// add, insert
 	public function add( $e, $e2=false ){
 		if( $e2 !== false ){
 			$e2=false;
@@ -105,147 +94,16 @@ class Model{
 		}
 		return $this->_add( $e, false );
 	}
-	public function _add(&$e,$replace=false){
-		$e =& decode( $e );
+
+	public function _add(&$e,$replace=false)
+	{
+		$e =& Decoder::decode_array( $e );
+		// if( ! validate ) add error , return
 		return $this->__add($e,$replace);
 	}
 	
-	
-	
-	private function add_error( $field, $arg ){
-		$this->db->_add_error($this->name,$field,$arg);
-	}
-	
-	private function get_col_name( &$a ){
-		return isset($a['col'])?$a['col']:(isset($a['name'])?
-				$a['name']:false);
-	}
-	private function get_alias_name( &$a ){
-		return isset($a['alias'])?$a['alias']:(isset($a['name'])?
-				$a['name']:false);
-	}
-	private function is_col( &$attr ){
-		return isset($attr['!']) && !isset($attr['model']) && 
-			!is_array($attr['content']) || 
-			is_array($attr['content']) && 
-				(isset($attr['sql']) || isset($attr['serialize']) );
-	}
-	private function has_many( &$attr ){
-		return isset($attr['model']) || is_array($attr['content']);
-	}
-	private function add_val( &$q, &$attr, &$default_entry ){
-		
-		$v;
-		if( isset($attr['content']) ){
-			$v =& $attr['content'];
-		}else if( isset($default_entry['content']) ){
-			$v =& $default_entry['content'];
-			$attr =& $default_entry;
-		}else{
-			// if now: poe o now; else:
-			$q[] = 'DEFAULT';
-			return;
-		}
-		
-		if( isset($attr['sql']) ){
-			if( is_string($attr['sql']) ){
-				
-				$a = $attr['content']; 
-				if( is_string($a) ){
-					$a = array(array('name'=>$a));
-				}
-				// se nao for array, error!
-				$sql = $attr['sql']; // & ?
-				foreach( $a as $c => $v ){
-					// solução estranha
-					// modo mais facil era usar o $v['name']
-					$a[$c] = '\''.$this->db->escape($v['name']).'\''; 
-				}
-				$sql = strtr($sql,array('%'=>"%%",'?'=>"%s"));
-				$q[] = vsprintf($sql,$a);
-			}else{
-				$q[] = $attr['content']; // & ?
-			}
-			
-			
-		}else if( $v === NULL ){
-			$q[] = 'NULL';
-		}else{
-			if( isset($attr['serialize']) ){ 
-				// || is_object($attr['serialize']) || 
-				// is_array($attr['serialize'])
-				// content array poderiam estar maculados pela funcao que 
-				// decodifica as macros
-				// eh preciso fazer colocar exeções na função
-				$v =& serialize($attr['content']);
-			}
-			if( isset($attr['trim']) ){ 
-				$v =& trim($attr['content']);
-			}
-			if( isset($attr['trim']) ){ 
-				$v =& trim($attr['content']);
-			}
-			if( isset($attr['upper_case']) || isset($attr['upper']) ){ 
-				$v =& strtoupper($attr['content']);
-			}
-			if( isset($attr['lower_case']) || isset($attr['lower']) ){ 
-				$v =& strtolower($attr['content']);
-			}
-			
-			$type = false;
-			if( isset($attr['int']) ){
-				$valid = is_int($v) || ((int)$v).'' == ''.$v;
-				$this->add_error($this->get_alias_name($attr),'not_int');
-				$type = true;
-			}
-			if( isset($attr['date']) ){
-				if( $type )error();
-				
-				if( !is_string($attr['date']) )error();
-				
-				$aux = $this->sql_date($v,$attr['date']);
-				if( $aux === false ){
-					$this->add_error($this->get_alias_name($attr),'format_date');
-				}
-				$v =& $aux;
-				
-				$type = true;
-			}
-			if( isset($attr['text']) ){
-				if( $type )error();
-				if( !ereg('^[0-9]+-[0-9]+$',$attr['text']) )
-					die('não é assim que se faz');
-				$text = explode('-',$attr['text']);
-				$b = (int)$text[0];
-				$t = (int)$text[1];
-				if( $b > $t ){
-					die('o maior tem que ser maior que o menor');
-				}
-				if( strlen($v)>$t ){
-					// error
-					$this->add_error($this->get_alias_name($attr),'grande');
-				}
-				if( strlen($v)<$b ){
-					$this->add_error($this->get_alias_name($attr),'pequeno');
-				}
-				$type = true;
-			}
-			if( isset($attr['time']) ){
-				if( $type )error();
-				$type = true;
-			}
-			
-			$q[] = '\'';
-			$q[] = $this->db->escape( $v );
-			$q[] = '\'';
-		}
-	}
-	
-	
-	
-	public function __add(&$e,$replace=false){
-		
-		
+	public function __add(&$e,$replace=false)
+	{
 		$q = array();
 		if( $replace===true )
 			$q[] = 'REPLACE INTO `';
@@ -263,15 +121,19 @@ class Model{
 		$entries[] = array();
 		$specials = array();
 		$specials[] = array();
+
+		var_dump( $e );
+		echo '<br>';
 		
 		$debugando = false; 
 		// $entries[0] = array('!'=>array());
 		foreach( $e as $c => $attr ){
-			$name = $this->get_col_name( $attr );
+			// $name = $this->get_col_name( $attr );
+			$name = $c;
 			
 			// talvez surgirah mais casos tipo o de table
 			// que ha nome e nao deve ser usado agora
-			if( $name && $this->is_col($attr) ){ // is col
+			if( $name && true ){ // $this->is_col($attr) ){ // is col
 				
 				$entries[0][$name] =& $e[$c];
 				
@@ -397,8 +259,10 @@ class Model{
 		return $r0;
 		// 
 	}
+	
 	private function _values( &$names, &$entries, &$q, &$need_transaction, 
-			&$special, &$default_entry, &$default_special ){
+		&$special, &$default_entry, &$default_special )
+	{
 		
 		
 		$b2 = false;
@@ -421,6 +285,7 @@ class Model{
 					$b = true;
 					continue;
 				}
+				var_dump( $attr );
 				$this->add_val( $q, $attr, $default_entry );
 				$b = true;
 			}
@@ -457,47 +322,163 @@ class Model{
 		}
 	}
 	
+	private function add_val( &$q, &$attr, &$default_entry )
+	{
+		
+		$v;
+		if( isset($attr['content']) ){
+			$v =& $attr['content'];
+		}else if( isset($default_entry['content']) ){
+			$v =& $default_entry['content'];
+			$attr =& $default_entry;
+		}else{
+			// if now: poe o now; else:
+			$q[] = 'DEFAULT';
+			return;
+		}
+		
+		if( isset($attr['sql']) ){
+			if( is_string($attr['sql']) ){
+				
+				$a = $attr['content']; 
+				if( is_string($a) ){
+					$a = array(array('name'=>$a));
+				}
+				// se nao for array, error!
+				$sql = $attr['sql']; // & ?
+				foreach( $a as $c => $v ){
+					// solução estranha
+					// modo mais facil era usar o $v['name']
+					$a[$c] = '\''.$this->db->escape($v['name']).'\''; 
+				}
+				$sql = strtr($sql,array('%'=>"%%",'?'=>"%s"));
+				$q[] = vsprintf($sql,$a);
+			}else{
+				$q[] = $attr['content']; // & ?
+			}
+			
+			
+		}else if( $v === NULL ){
+			$q[] = 'NULL';
+		}else{
+			if( isset($attr['serialize']) ){ 
+				// || is_object($attr['serialize']) || 
+				// is_array($attr['serialize'])
+				// content array poderiam estar maculados pela funcao que 
+				// decodifica as macros
+				// eh preciso fazer colocar exeções na função
+				$v =& serialize($attr['content']);
+			}
+			if( isset($attr['trim']) ){ 
+				$v =& trim($attr['content']);
+			}
+			if( isset($attr['trim']) ){ 
+				$v =& trim($attr['content']);
+			}
+			if( isset($attr['upper_case']) || isset($attr['upper']) ){ 
+				$v =& strtoupper($attr['content']);
+			}
+			if( isset($attr['lower_case']) || isset($attr['lower']) ){ 
+				$v =& strtolower($attr['content']);
+			}
+			
+			$type = false;
+			if( isset($attr['int']) ){
+				$valid = is_int($v) || ((int)$v).'' == ''.$v;
+				$this->add_error($this->get_alias_name($attr),'not_int');
+				$type = true;
+			}
+			if( isset($attr['date']) ){
+				if( $type )error();
+				
+				if( !is_string($attr['date']) )error();
+				
+				$aux = $this->sql_date($v,$attr['date']);
+				if( $aux === false ){
+					$this->add_error($this->get_alias_name($attr),'format_date');
+				}
+				$v =& $aux;
+				
+				$type = true;
+			}
+			if( isset($attr['text']) ){
+				if( $type )error();
+				if( !ereg('^[0-9]+-[0-9]+$',$attr['text']) )
+					die('não é assim que se faz');
+				$text = explode('-',$attr['text']);
+				$b = (int)$text[0];
+				$t = (int)$text[1];
+				if( $b > $t ){
+					die('o maior tem que ser maior que o menor');
+				}
+				if( strlen($v)>$t ){
+					// error
+					$this->add_error($this->get_alias_name($attr),'grande');
+				}
+				if( strlen($v)<$b ){
+					$this->add_error($this->get_alias_name($attr),'pequeno');
+				}
+				$type = true;
+			}
+			if( isset($attr['time']) ){
+				if( $type )error();
+				$type = true;
+			}
+			
+			$q[] = '\'';
+			$q[] = $this->db->escape( $v );
+			$q[] = '\'';
+		}
+	}
 	
+	// ajuda o set e o add
+	// pega nome da coluna, alias, vê ser é coluna, 
+	// se é relação é muitos, etc
+	private function get_col_name( &$a )
+	{
+		return isset($a['col'])?$a['col']:(isset($a['name'])?
+				$a['name']:false);
+	}
+	private function get_alias_name( &$a )
+	{
+		return isset($a['alias'])?$a['alias']:(isset($a['name'])?
+				$a['name']:false);
+	}
+	private function is_col( &$attr )
+	{
+		return isset($attr['!']) && !isset($attr['model']) && 
+			!is_array($attr['content']) || 
+			is_array($attr['content']) && 
+				(isset($attr['sql']) || isset($attr['serialize']) );
+	}
+	private function has_many( &$attr )
+	{
+		return isset($attr['model']) || is_array($attr['content']);
+	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+	// remove
 	public function remove($t,$id)
 	{
 		$t = $this->db->escape($t);
 		$id = (int)$id;
 		return $this->db->_query("DELETE FROM `$t` WHERE id = '$id'");
 	}
-
+	
+    // get
 	public function get($t,$id)
 	{
 		$t = $this->db->escape($t);
 		$id = (int)$id;
 		return $this->db->_query("SELECT * FROM `$t` WHERE id = '$id'");
+	}
+	
+	// adiciona erro a transacao
+	// ou a ultima (será próxima?) query
+	private function add_error( $field, $arg )
+	{
+		$this->db->_add_error($this->name,$field,$arg);
 	}
 	
 	private function sql_date_format($d,$format)
@@ -583,4 +564,26 @@ class Model{
 		// return eregi_replace('m',''.((int)$month),$format);
 	}
 
+	// array access
+	public function offsetSet($id,$val)
+	{
+		if( $id === NULL ){
+			return $this->_add( $val );
+		}else{
+			return $this->set( $id, $val );
+		}
+	}
+	public function offsetGet($id)
+	{
+		
+	}
+	public function offsetUnset($id)
+	{
+		
+	}
+	public function offsetExists($id)
+	{
+		
+	}
+	
 }
