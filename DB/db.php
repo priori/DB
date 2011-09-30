@@ -18,7 +18,8 @@ class DB{
 	private $debug_mode = false;
 	private $error_mode = 1;
 
-	public function __set( $a, $b ){
+	public function __set( $a, $b )
+	{
 
 		if( $a === 'error_mode' ){
 			if( $b !== 1 || $b !== 2 || $b !== 4 ){   
@@ -32,7 +33,8 @@ class DB{
 	}
 
 	
-	public function fire_error( $err ){
+	public function fire_error( $err )
+	{
 		if( $this->error_mode == 1 ){
 			$bt = debug_backtrace();
 			$d = false;
@@ -103,7 +105,8 @@ class DB{
 	}
 
 	// Construtor
-	public function DB($h='localhost',$u='root',$p=''){
+	public function DB($h='localhost',$u='root',$p='')
+	{
 		$this->mysqli_mode = class_exists('mysqli');
 		if( $this->mysqli_mode ){
 			$this->link = new mysqli($h,$u,$p);
@@ -113,7 +116,8 @@ class DB{
 	}
 	
 	
-	public function debug_mode($b){
+	public function debug_mode($b)
+	{
 		$this->debug_mode = $b;
 	}
 	
@@ -122,7 +126,8 @@ class DB{
 	public function _query( $q ){
 		return $this->__query( $q );
 	}
-	public function __query( &$q ){
+	public function __query( &$q )
+	{
 		
 		// lidando com as transactions
 		// esperando o $db->end();
@@ -175,7 +180,8 @@ class DB{
 			return true;
 		return new DB_Result( $r, $this->link );
 	}
-	public function select_db( $db ){
+	public function select_db( $db )
+	{
 		$this->db_selected = $db;
 		if( $this->mysqli_mode ){
 			$this->link->select_db($db);
@@ -184,25 +190,29 @@ class DB{
 		}
 	}
 	
-	public function insert_id(){
+	public function insert_id()
+	{
 		if( $this->mysqli_mode )
 			return $this->link->insert_id;
 		return mysql_insert_id($this->link);
 	}
-	public function escape(&$s){
+	public function escape(&$s)
+	{
 		if( is_array($s))var_dump($s);
 		if( $this->mysqli_mode )
 			return $this->link->real_escape_string($s);
 		return mysql_real_escape_string($s,$this->link);
 	}
-	public function set_charset($c){
+	public function set_charset($c)
+	{
 		if( $this->mysqli_mode )
 			return $this->link->set_charset( $c );
 		return mysql_set_charset( $c, $this->link );
 	}
 	
 	private $models = array();
-	public function __get($n){
+	public function __get($n)
+	{
 		if( !isset($this->models[$n]) )
 			$this->models[$n] = new Model($this,$n);
 		return $this->models[$n];
@@ -210,7 +220,8 @@ class DB{
 	
 	
 	private $transaction_count = 0;
-	public function begin( $b = false ){
+	public function begin( $b = false )
+	{
 		if( $b === true ){
 			$r;
 			if( !$this->transaction_count )
@@ -221,10 +232,12 @@ class DB{
 			return $this->_query('BEGIN');
 		}
 	}
-	public function rollback(){
+	public function rollback()
+	{
 		return $this->_query('ROLLBACK');
 	}
-	public function commit( $b = false ){
+	public function commit( $b = false )
+	{
 		if( $b === true ){
 			$this->transaction_count--;
 			if( !$this->transaction_count ){
@@ -242,7 +255,8 @@ class DB{
 			return $this->_query('COMMIT');
 		}
 	}
-	public function end(){
+	public function end()
+	{
 		return $this->commit(true);
 	}
 	
@@ -250,14 +264,16 @@ class DB{
 	private $validation_errors = false;
 	public $_has_validation_error = false;
 	private $_first_query_with_error = false;
-	public function errors(){
+	public function errors()
+	{
 		$a = func_get_args();
 		if( count($a) && $this->validation_errors )
 			return $this->validation_errors->messages( $a );
 		return $this->validation_errors;
 	}
 	
-	public function _add_error( $model, $field, $err ){
+	public function _add_error( $model, $field, $err )
+	{
 		if( !$this->validation_errors ){
 			$this->validation_errors = new ErrorList();
 		}
@@ -276,7 +292,8 @@ class DB{
 	}
 	private $trans_error = false;
 	private $trans_errno = false;
-	public function db_error(){
+	public function db_error()
+	{
 		if( $this->trans_errno ){
 			return $this->trans_error;
 		}
@@ -284,7 +301,8 @@ class DB{
 			return $this->link->error;
 		return mysql_error($this->link);
 	}
-	public function db_errno(){
+	public function db_errno()
+	{
 		if( $this->trans_errno ){
 			return $this->trans_errno;
 		}
@@ -294,7 +312,8 @@ class DB{
 	}
 	
 	
-	public function query( $a ){
+	public function query( $a )
+	{
 		if( !is_array($a) )
 			$a = func_get_args();
 		$q = array_shift($a);
@@ -311,12 +330,14 @@ class DB{
 	}
 	
 	
-	public function fetch(){
+	public function fetch()
+	{
 		$r = $this->query(func_get_args());
 		return $r->fetch();
 	}
 
-	public function fetchAll(){
+	public function fetchAll()
+	{
 		$r = $this->query(func_get_args());
 		$a = array();
 		while( $aux = $r->fetch() ){
@@ -324,7 +345,8 @@ class DB{
 		}
 		return $a;
 	}
-	public function link(){
+	public function link()
+	{
 		return $this->link;
 	}
 

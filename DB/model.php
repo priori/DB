@@ -126,14 +126,13 @@ class Model  implements arrayaccess{
 		echo '<br>';
 		
 		$debugando = false; 
-		// $entries[0] = array('!'=>array());
 		foreach( $e as $c => $attr ){
-			// $name = $this->get_col_name( $attr );
 			$name = $c;
+			// $name = $this->get_col_name( $attr );
 			
 			// talvez surgirah mais casos tipo o de table
 			// que ha nome e nao deve ser usado agora
-			if( $name && true ){ // $this->is_col($attr) ){ // is col
+			if( $name && true ){ // $this->is_col($attr) ) // is col
 				
 				$entries[0][$name] =& $e[$c];
 				
@@ -257,7 +256,6 @@ class Model  implements arrayaccess{
 		
 		
 		return $r0;
-		// 
 	}
 	
 	private function _values( &$names, &$entries, &$q, &$need_transaction, 
@@ -285,7 +283,6 @@ class Model  implements arrayaccess{
 					$b = true;
 					continue;
 				}
-				var_dump( $attr );
 				$this->add_val( $q, $attr, $default_entry );
 				$b = true;
 			}
