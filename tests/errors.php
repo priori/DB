@@ -55,6 +55,7 @@ $db->query("TRUNCATE pessoa");
 // inserir data
 $db->pessoa->add(array('nome:date(dd/mm/yyyy)'=>'01/10/2011'));
 $p = $db->query('SELECT * FROM pessoa');
+echo $p;
 $p = $p->fetch();
 
 

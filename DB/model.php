@@ -107,196 +107,258 @@ class Model  implements arrayaccess{
 		return $this->__add($e,$replace);
 	}
 	
-	public function __add(&$e,$replace=false,$multiple_inserctions){
+	public function __add(&$e,$replace=false,$multiple_inserctions=false){
 
 		$q = array();
 		if( $replace===true )
 			$q[] = 'REPLACE INTO `';
 		else
 			$q[] = 'INSERT INTO `';
-
 		$q[] = $this->name;
 		$q[] = '` (';
-		$names = array();
-		$fazer_por_partes = false; // para pegar o inserted id correto
-		
-		$special = array();
-		$need_transaction = false;
-		
-		$entries = array();
-		$entries[] = array();
-		$specials = array();
-		$specials[] = array();
 
-		$debugando = false; 
-		foreach( $e as $name => $attr ){
-			
-			if( $name && true ){ // $this->is_col($attr) ) // is col
-				
-				$entries[0][$name] =& $e[$c];
-				
-				if( !isset($names[$name]) ){
+		// em caso de inserssões multiplas o bixo pega
+		// entries tem os valores de cada nova entrada
+		// names os nomes das colunas que serão utilizadas
+		$entries = array(); // valores de cada nova entrada
+		$entries[] = array();
+		$names = array(); // nomes das col utilizadas
+
+		// se houver relações has many ou for utilizada outro tipo 
+		// de funcionalidade que necessite de transações
+		$need_transaction = false;
+
+		// varias entradas, mas cada uma será inserida separadamente
+		$fazer_por_partes = false; // uma insersao multipla
+
+		// special é uma merda, tenho que melhorar isso
+		// coisa mal explicada
+		// $special = array();
+		// $specials = array();
+		// $specials[] = array();
+
+		$b = false; // precisa de virgula?
+		$entries_count = 0;
+		$has_more_entries = true;
+		while( $has_more_entries ){
+			if( !$multiple_insercations ){
+				$has_more_entries = false;
+				$entry =& $e;
+			}else{
+				// mais complicado
+				// if default value 
+				// guarda default value
+				// continue
+				// else
+				// set entry
+			}
+
+			foreach( $entry as $name => $attr ){
+
+				if( !isset($attr['has_many']) ){ // is not has many
+					if( isset($names[$name]) ){
+						continue;
+					}
 					if( $b )
 						$q[] = ', ';
-					else{
+					else
 						$b = true;
-					}
 					$q[] = '`';
 					$q[] = $this->db->escape($name);
 					$q[] = '`';
+
+					$entries[$entries_count][$name] =& $attr;
 					$names[$name] = true;
+
+				}else{
+
 				}
-				
-			}else if( !$name && !isset($attr['content']) && !isset($attr['!']) ){ 
-				
-				$actual_entry = array();
-				$actual_special = array();
-				foreach( $attr as $attr2 ){
-					$name2 = $this->get_col_name( $attr2 );
-					
-					if( $name2 && $this->is_col($attr2) ){ // is col
-						
-						$actual_entry[ $name2 ] = $attr2;
-						if( !isset($names[$name2]) ){
-							if( $b )
-								$q[] = ', ';
-							else{
-								$b = true;
-							}
-							$q[] = '`';
-							$q[] = $this->db->escape($name2);
-							$q[] = '`';
-							$names[$name2] = true;
-						}
-						
-					}elseif( false ){ // has many, query after
-						
-						$fazer_por_partes = true;
-						$actual_special[] = $attr2;
-						$need_transaction = true;
-						
-					}else{ 
-						die('nao aceita macros complicadas para insersoes '.
-							'multiplas que nao na primeira insersao');
-					}
-				}
-				$entries[] = $actual_entry;
-				$specials[] = $actual_special;
-				
-				
-			}else if( $this->has_many($attr) ){ // has many, query after,
-				
-				$specials[0][] = $attr;
-				$need_transaction = true;
+
+
+				// if( $name && true ){ // $this->is_col($attr) ) // is col
+				// 	
+				// 	$entries[0][$name] =& $e[$c];
+				// 	
+				// 	if( !isset($names[$name]) ){
+				// 		if( $b )
+				// 			$q[] = ', ';
+				// 		else{
+				// 			$b = true;
+				// 		}
+				// 		$q[] = '`';
+				// 		$q[] = $this->db->escape($name);
+				// 		$q[] = '`';
+				// 		$names[$name] = true;
+				// 	}
+				// 	
+				// }else if( !$name && !isset($attr['content']) && !isset($attr['!']) ){ 
+				// 	
+				// 	$actual_entry = array();
+				// 	$actual_special = array();
+				// 	foreach( $attr as $attr2 ){
+				// 		$name2 = $this->get_col_name( $attr2 );
+				// 		
+				// 		if( $name2 && $this->is_col($attr2) ){ // is col
+				// 			
+				// 			$actual_entry[ $name2 ] = $attr2;
+				// 			if( !isset($names[$name2]) ){
+				// 				if( $b )
+				// 					$q[] = ', ';
+				// 				else{
+				// 					$b = true;
+				// 				}
+				// 				$q[] = '`';
+				// 				$q[] = $this->db->escape($name2);
+				// 				$q[] = '`';
+				// 				$names[$name2] = true;
+				// 			}
+				// 			
+				// 		}elseif( false ){ // has many, query after
+				// 			
+				// 			$fazer_por_partes = true;
+				// 			$actual_special[] = $attr2;
+				// 			$need_transaction = true;
+				// 			
+				// 		}else{ 
+				// 			die('nao aceita macros complicadas para insersoes '.
+				// 				'multiplas que nao na primeira insersao');
+				// 		}
+				// 	}
+				// 	$entries[] = $actual_entry;
+				// 	$specials[] = $actual_special;
+				// 	
+				// 	
+				// }else if( $this->has_many($attr) ){ // has many, query after,
+				// 	
+				// 	$specials[0][] = $attr;
+				// 	$need_transaction = true;
+				// }
 			}
+			$entries_count++;
 		}
 		$q[] = ') VALUES ';
-		
-		$default_entry;
-		if( count($entries) > 1 ){
-			$default_entry =& $entries[0];
-			array_shift( $entries );
+
+		if( !$multiple_insercations ){
+			return $this->_values( $q, $entries, $names, $need_transaction,
+					$default_values );
 		}
-		$default_special;
-		if( count($specials) > 1 ){
-			$default_special =& $specials[0];
-			array_shift( $specials );
-		}
-		
-		
-		if( $fazer_por_partes ){
-			$len = count( $q );
-			foreach( $entries as $c => $e ){
-				$es = array();
-				$es[] =& $e;
-				$aux = $default_entry;
-				
-				$r0 = $this->_values( $names, $es, $q, $need_transaction, 
-						$specials[$c], $aux, $default_special );
-				$q = array_slice($q, 0, $len);
-			}
-			
-		}else{
-			$a = array();
-			foreach( $specials as $s ){
-				foreach( $s as $c => $v ){
-					$a[] =& $s[$c];
-				}
-			}
-			return $this->_values( $names, $entries, $q, $need_transaction, 
-					$a, $default_entry, $default_special );
-			
-		}
+		// $default_values;
+		// if( count($entries) > 1 ){
+		// 	$default_values =& $entries[0];
+		// 	array_shift( $entries );
+		// }
+		// $default_special;
+		// if( count($specials) > 1 ){
+		// 	$default_special =& $specials[0];
+		// 	array_shift( $specials );
+		// }
+		// 
+		// 
+		// if( $fazer_por_partes ){
+		// 	$len = count( $q );
+		// 	foreach( $entries as $c => $e ){
+		// 		$es = array();
+		// 		$es[] =& $e;
+		// 		$aux = $default_values;
+		// 		
+		// 		$r0 = $this->_values( $names, $es, $q, $need_transaction, 
+		// 				$specials[$c], $aux, $default_special );
+		// 		$q = array_slice($q, 0, $len);
+		// 	}
+		// 	
+		// }else{
+		// 	$a = array();
+		// 	foreach( $specials as $s ){
+		// 		foreach( $s as $c => $v ){
+		// 			$a[] =& $s[$c];
+		// 		}
+		// 	}
+		// 	return $this->_values( $names, $entries, $q, $need_transaction, 
+		// 			$a, $default_values, $default_special );
+		// 	
+		// }
 		
 		
 		return $r0;
 	}
 	
-	private function _values( &$names, &$entries, &$q, &$need_transaction, 
-		&$special, &$default_entry, &$default_special ){
+	// private function _values( &$names, &$entries, &$q, &$need_transaction, 
+	// 	&$special, &$default_values, &$default_special ){
+	private function _values( &$q, &$entries, &$names, &$need_transaction,
+			&$default_values ){
+
+
 		$b2 = false;
 		foreach( $entries as $entry ){
 			if( $b2 )
 				$q[] = ', ';
 			$q[] = '(';
 			$b = false;
-			foreach( $names as $name => $t ){
+			foreach( $names as $name => $aux ){
 				if( $b ){
 					$q[] = ', ';
 				}
 				$attr;
-				if( isset($entry[$name])  ){ // coisa maluca, esquisito
+				if( isset($entry[$name]) ){
 					$attr =& $entry[$name];
-				}elseif( isset($default_entry[$name]) ){
-					$attr =& $default_entry[$name];
+					$this->add_val( $q, $attr, $attr );
 				}else{
 					$q[] = 'DEFAULT';
-					$b = true;
-					continue;
 				}
-				$this->add_val( $q, $attr, $default_entry );
+				// if( isset($entry[$name])  ){ // coisa maluca, esquisito
+				// 	$attr =& $entry[$name];            
+				// 	$this->add_val( $q, $attr, $default_values );  
+				// }elseif( isset($default_values[$name]) ){
+				// 	$attr =& $default_values[$name];    
+				// 	$this->add_val( $q, $attr, $default_values );  
+				// }else{
+				// 	$q[] = 'DEFAULT';
+				// 	$b = true;
+				// 	continue;
+				// }
 				$b = true;
 			}
 			$q[] = ')';
 			$b2 = true;
 		}
 		
+		return $this->db->_query( implode('',$q) );
 		
 		
-		if( $need_transaction ){
-			$this->db->begin(true);
-			$r1 = $this->db->_query( implode('',$q) );
-			$id = $this->db->insert_id();
-			foreach( $special as $attr ){
-				$n = $this->get_col_name($attr);
-				if( is_array($attr['content']) && $n ){
-					$fk = $this->name.'_id';
-					if( isset($attr['fk']) )
-					$fk = $attr['fk'];
-					$attr['content'][] = array('!'=>true,'col'=>$fk,
-							'content'=>''.$id ,'name'=>$fk);
-					$r = $this->db->$n->__add( $attr['content'] );
-					if( $r === false ){
-						$this->db->end();
-						return $r;
-					}
-				}
-			}
-			$this->db->end();
-			return $r1;
-			
-		}else{
-			return $this->db->_query( implode('',$q) );
-		}
+		// if( $need_transaction ){
+		// 	$this->db->begin(true);
+		// 	$r1 = $this->db->_query( implode('',$q) );
+		// 	$id = $this->db->insert_id();
+		// 	foreach( $special as $attr ){
+		// 		$n = $this->get_col_name($attr);
+		// 		if( is_array($attr['content']) && $n ){
+		// 			$fk = $this->name.'_id';
+		// 			if( isset($attr['fk']) )
+		// 			$fk = $attr['fk'];
+		// 			$attr['content'][] = array('!'=>true,'col'=>$fk,
+		// 					'content'=>''.$id ,'name'=>$fk);
+		// 			$r = $this->db->$n->__add( $attr['content'] );
+		// 			if( $r === false ){
+		// 				$this->db->end();
+		// 				return $r;
+		// 			}
+		// 		}
+		// 	}
+		// 	$this->db->end();
+		// 	return $r1;
+		// 	
+		// }else{
+		// 	return $this->db->_query( implode('',$q) );
+		// }
 	}
 	
-	private function add_val( &$q, &$attr, &$default_entry ){
+	private function add_val( &$q, &$attr, &$default_values ){
 		$v;
 		if( isset($attr['content']) ){
 			$v =& $attr['content'];
-		}else if( isset($default_entry['content']) ){
-			$v =& $default_entry['content'];
-			$attr =& $default_entry;
+		}else if( isset($default_values['content']) ){
+			$v =& $default_values['content'];
+			$attr =& $default_values;
 		}else{
 			// if now: poe o now; else:
 			$q[] = 'DEFAULT';
@@ -442,6 +504,7 @@ class Model  implements arrayaccess{
 		$this->db->_add_error($this->name,$field,$arg);
 	}
 	
+
 	private function sql_date_format($d,$format){
 		$d = explode('/',$d);
 		$day = $d[0];
@@ -469,14 +532,12 @@ class Model  implements arrayaccess{
 	private function sql_date($d,$format){
 		$f = strtr($format,array( 
 			'dd' => '([0-9][0-9])','mm' => '([0-9][0-9])','yyyy' => '([0-9][0-9][0-9][0-9])',
-			'd' => '([0-9][0-9]?)','m' => '([0-9][0-9]?)','yy' => '([0-9][0-9])'
+			'd' => '([0-9][0-9]?)','m' => '([0-9][0-9]?)','yy' => '([0-9][0-9])',
+			'(' => '\\(', '/' => '\\/' , ')' => '\\)' // falta muito o que validar
 		));
 		$r;
 		preg_match_all('/^'.$f.'$/',$d,$r);
 		$r2;
-		var_dump( $format );
-		echo ', ';
-		var_dump( $r2 );
 		preg_match_all('/dd|mm|yyyy|d|m|yy/',$format,$r2);
 		$r2 = $r2[0];
 		if( !count($r) )return false;
