@@ -12,8 +12,9 @@ class DB_Result implements Countable, Iterator{
 	}
 	public function num_rows()
 	{
-		if( class_exists('mysqli') )
-			return $this->r->num_rows();
+		if( class_exists('mysqli') ){
+			return $this->r->num_rows;
+		}
 		return mysql_num_rows($this->r);
 	}
 	public function fetch()

@@ -8,22 +8,19 @@ class Model  implements arrayaccess{
 	private $alias; // model name
 	private $name; // table scaped name
 
-	public function Model( &$link, &$name, $args = false )
-	{
+	public function Model( &$link, &$name, $args = false ){
 		$this->db =& $link;
 		$this->alias =& $name;
 		$this->name =& $link->escape( $name );
 		$this->args =& $args;
 	}
 	
-	public function __toString()
-	{
+	public function __toString(){
 		return '`'.$this->name.'`';
 	}
 
 	// set, update
-	public function set( $id, $args )
-	{
+	public function set( $id, $args ){
 		$args = Decoder::decode_array( $args );
 		if( is_array($id) || is_object($id) ){
 			// não boa ideia, e a chave primaira for com duas colunas?
@@ -32,8 +29,7 @@ class Model  implements arrayaccess{
 		}
 		return $this->_set( $id, $args );
 	}
-	public function _set(&$id, &$attrs)
-	{
+	public function _set(&$id, &$attrs){
 		$n = array();
 		$q = array();
 		$q[] = 'UPDATE `';
@@ -94,21 +90,31 @@ class Model  implements arrayaccess{
 		}
 		return $this->_add( $e, false );
 	}
+	public function replace( $e, $e2=false ){
+		if( $e2 !== false ){
+			$e2=false;
+			$e=func_get_args();
+		}
+		return $this->_add( $e, true );
+	}
 
-	public function _add(&$e,$replace=false)
-	{
+	public function _add(&$e,$replace=false){
+		foreach( $e as $c => $v ){
+		
+		}
 		$e =& Decoder::decode_array( $e );
 		// if( ! validate ) add error , return
 		return $this->__add($e,$replace);
 	}
 	
-	public function __add(&$e,$replace=false)
-	{
+	public function __add(&$e,$replace=false,$multiple_inserctions){
+
 		$q = array();
 		if( $replace===true )
 			$q[] = 'REPLACE INTO `';
 		else
 			$q[] = 'INSERT INTO `';
+
 		$q[] = $this->name;
 		$q[] = '` (';
 		$names = array();
@@ -122,16 +128,9 @@ class Model  implements arrayaccess{
 		$specials = array();
 		$specials[] = array();
 
-		var_dump( $e );
-		echo '<br>';
-		
 		$debugando = false; 
-		foreach( $e as $c => $attr ){
-			$name = $c;
-			// $name = $this->get_col_name( $attr );
+		foreach( $e as $name => $attr ){
 			
-			// talvez surgirah mais casos tipo o de table
-			// que ha nome e nao deve ser usado agora
 			if( $name && true ){ // $this->is_col($attr) ) // is col
 				
 				$entries[0][$name] =& $e[$c];
@@ -148,19 +147,15 @@ class Model  implements arrayaccess{
 					$names[$name] = true;
 				}
 				
-			// is array, sei lá!
 			}else if( !$name && !isset($attr['content']) && !isset($attr['!']) ){ 
 				
-				//$actual_entry = array('!'=>array());
 				$actual_entry = array();
 				$actual_special = array();
-				// $tem_que_ter_algo = false
 				foreach( $attr as $attr2 ){
 					$name2 = $this->get_col_name( $attr2 );
 					
 					if( $name2 && $this->is_col($attr2) ){ // is col
 						
-						// $tem_que_ter_algo = true
 						$actual_entry[ $name2 ] = $attr2;
 						if( !isset($names[$name2]) ){
 							if( $b )
@@ -174,47 +169,29 @@ class Model  implements arrayaccess{
 							$names[$name2] = true;
 						}
 						
-					}elseif( $this->has_many($attr2) ){ // has many, query after
+					}elseif( false ){ // has many, query after
 						
 						$fazer_por_partes = true;
 						$actual_special[] = $attr2;
 						$need_transaction = true;
 						
-					// }elseif( query before ){
-						
-					// }elseif( is special ){
-						
 					}else{ 
 						die('nao aceita macros complicadas para insersoes '.
 							'multiplas que nao na primeira insersao');
-						// $actual_entry['!'][] =& $attr2;
-						// insiste em nao ter nome
 					}
-					// if( !$tem_que_ter_algo )que_maluquece();
 				}
 				$entries[] = $actual_entry;
 				$specials[] = $actual_special;
 				
 				
-			// }elseif( query before ){
-				
-			// }elseif( is special ){
-				
 			}else if( $this->has_many($attr) ){ // has many, query after,
 				
 				$specials[0][] = $attr;
-				// if( isset($attr['model']) || is_array($attr['content']) ){
 				$need_transaction = true;
-				// }
-				// $entries[0]['!'][] =& $attr;
-				// insiste em nao ter nome
 			}
 		}
 		$q[] = ') VALUES ';
 		
-		//if( !count($entries[0]) );
-		//	array_shift( $entries );
-		//
 		$default_entry;
 		if( count($entries) > 1 ){
 			$default_entry =& $entries[0];
@@ -227,11 +204,8 @@ class Model  implements arrayaccess{
 		}
 		
 		
-		// if( $fazer_por_partes ); // ai eh diferente
 		if( $fazer_por_partes ){
 			$len = count( $q );
-			// var_dump( $specials );
-			// die();
 			foreach( $entries as $c => $e ){
 				$es = array();
 				$es[] =& $e;
@@ -259,10 +233,7 @@ class Model  implements arrayaccess{
 	}
 	
 	private function _values( &$names, &$entries, &$q, &$need_transaction, 
-		&$special, &$default_entry, &$default_special )
-	{
-		
-		
+		&$special, &$default_entry, &$default_special ){
 		$b2 = false;
 		foreach( $entries as $entry ){
 			if( $b2 )
@@ -319,9 +290,7 @@ class Model  implements arrayaccess{
 		}
 	}
 	
-	private function add_val( &$q, &$attr, &$default_entry )
-	{
-		
+	private function add_val( &$q, &$attr, &$default_entry ){
 		$v;
 		if( isset($attr['content']) ){
 			$v =& $attr['content'];
@@ -428,44 +397,40 @@ class Model  implements arrayaccess{
 		}
 	}
 	
+
+
 	// ajuda o set e o add
 	// pega nome da coluna, alias, vê ser é coluna, 
 	// se é relação é muitos, etc
-	private function get_col_name( &$a )
-	{
-		return isset($a['col'])?$a['col']:(isset($a['name'])?
-				$a['name']:false);
-	}
-	private function get_alias_name( &$a )
-	{
-		return isset($a['alias'])?$a['alias']:(isset($a['name'])?
-				$a['name']:false);
-	}
-	private function is_col( &$attr )
-	{
-		return isset($attr['!']) && !isset($attr['model']) && 
-			!is_array($attr['content']) || 
-			is_array($attr['content']) && 
-				(isset($attr['sql']) || isset($attr['serialize']) );
-	}
-	private function has_many( &$attr )
-	{
-		return isset($attr['model']) || is_array($attr['content']);
-	}
+//	private function get_col_name( &$a ){
+//		return isset($a['col'])?$a['col']:(isset($a['name'])?
+//				$a['name']:false);
+//	}
+//	private function get_alias_name( &$a ){
+//		return isset($a['alias'])?$a['alias']:(isset($a['name'])?
+//				$a['name']:false);
+//	}
+//	private function is_col( &$attr ){
+//		return isset($attr['!']) && !isset($attr['model']) && 
+//			!is_array($attr['content']) || 
+//			is_array($attr['content']) && 
+//				(isset($attr['sql']) || isset($attr['serialize']) );
+//	}
+//	private function has_many( &$attr ){
+//		return isset($attr['model']) || is_array($attr['content']);
+//	}
 	
 
 
 	// remove
-	public function remove($t,$id)
-	{
+	public function remove($t,$id){
 		$t = $this->db->escape($t);
 		$id = (int)$id;
 		return $this->db->_query("DELETE FROM `$t` WHERE id = '$id'");
 	}
 	
     // get
-	public function get($t,$id)
-	{
+	public function get($t,$id){
 		$t = $this->db->escape($t);
 		$id = (int)$id;
 		return $this->db->_query("SELECT * FROM `$t` WHERE id = '$id'");
@@ -473,13 +438,11 @@ class Model  implements arrayaccess{
 	
 	// adiciona erro a transacao
 	// ou a ultima (será próxima?) query
-	private function add_error( $field, $arg )
-	{
+	private function add_error( $field, $arg ){
 		$this->db->_add_error($this->name,$field,$arg);
 	}
 	
-	private function sql_date_format($d,$format)
-	{
+	private function sql_date_format($d,$format){
 		$d = explode('/',$d);
 		$day = $d[0];
 		$month = $d[1];
@@ -503,8 +466,7 @@ class Model  implements arrayaccess{
 		return eregi_replace('m',''.((int)$month),$format);
 	}
 	
-	private function sql_date($d,$format)
-	{
+	private function sql_date($d,$format){
 		$f = strtr($format,array( 
 			'dd' => '([0-9][0-9])','mm' => '([0-9][0-9])','yyyy' => '([0-9][0-9][0-9][0-9])',
 			'd' => '([0-9][0-9]?)','m' => '([0-9][0-9]?)','yy' => '([0-9][0-9])'
@@ -512,13 +474,16 @@ class Model  implements arrayaccess{
 		$r;
 		preg_match_all('/^'.$f.'$/',$d,$r);
 		$r2;
+		var_dump( $format );
+		echo ', ';
+		var_dump( $r2 );
 		preg_match_all('/dd|mm|yyyy|d|m|yy/',$format,$r2);
 		$r2 = $r2[0];
 		if( !count($r) )return false;
 		array_shift($r);
 		
 		$day = false;
-	$year = false;
+		$year = false;
 		$month = false;
 		foreach( $r as $c => $v ){
 			if( count($v) != 1 )return false;
@@ -562,24 +527,20 @@ class Model  implements arrayaccess{
 	}
 
 	// array access
-	public function offsetSet($id,$val)
-	{
+	public function offsetSet($id,$val){
 		if( $id === NULL ){
 			return $this->_add( $val );
 		}else{
 			return $this->set( $id, $val );
 		}
 	}
-	public function offsetGet($id)
-	{
+	public function offsetGet($id ){
 		
 	}
-	public function offsetUnset($id)
-	{
+	public function offsetUnset($id){
 		
 	}
-	public function offsetExists($id)
-	{
+	public function offsetExists($id){
 		
 	}
 	

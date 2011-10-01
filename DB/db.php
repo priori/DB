@@ -17,6 +17,7 @@ class DB{
 	private $mysqli_mode;
 	private $debug_mode = false;
 	private $error_mode = 1;
+	public $echo_queries = false;
 
 	public function __set( $a, $b )
 	{
@@ -123,7 +124,8 @@ class DB{
 	
 	private $smart_rollback = false;
 	
-	public function _query( $q ){
+	public function _query( $q )
+	{
 		return $this->__query( $q );
 	}
 	public function __query( &$q )
@@ -148,7 +150,9 @@ class DB{
 		}else{
 			$this->validation_errors = false;
 		}	            
-		echo $q.'<br/>';  
+		if( $this->echo_queries ){
+			echo $q.'<br/>';  
+		}
 		if( $this->mysqli_mode ){
 			$r = $this->link->query( $q );
 		}else{
