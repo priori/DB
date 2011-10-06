@@ -99,9 +99,6 @@ class Model  implements arrayaccess{
 	}
 
 	public function _add(&$e,$replace=false){
-		foreach( $e as $c => $v ){
-		
-		}
 		$e =& Decoder::decode_array( $e );
 		// if( ! validate ) add error , return
 		return $this->__add($e,$replace);
@@ -482,6 +479,79 @@ class Model  implements arrayaccess{
 //		return isset($attr['model']) || is_array($attr['content']);
 //	}
 	
+	private $valid_macros = array('date'=>true,'time'=>true,'date_time'=>true,
+		'sql'=>true,'int'=>true,'decimal'=>true,'trim'=>true,'bool'=>true,
+		'now'=>true,'format'=>true,'parse'=>true);
+
+	public function build_args( &$args ){
+		if( !is_array( $args ) ){
+			$this->db->fire_error("Argumentos inválidos!");
+		}
+
+		$args = array( $args );
+		$defaults = false;
+		$entries = array();
+              
+		$args_count = 0;
+		$has_more_entries = true;
+
+		while( isset($args[$args_count]) ){
+
+			$count = 0;
+			$e =& $args[$args_count];
+			$values = array();
+			foreach( $e as $c => $v ){
+				$has_content = false;
+				if( is_string( $c ) ){
+					$aux =& Decoder::decode_string( $c );
+					if( isset($aux['content']) ){
+						return 1;
+					}
+					$has_content = true;
+					$aux['content'] = $v;
+
+				// haverá esse caso mesmo?
+				}elseif( $c === $count && is_string($v) ){ 
+					$count++;
+					$aux = Decoder::decode_string( $v );
+
+				}else if( $c===$count && $args_count == 0 && is_array($v) ){
+					$args[] =& $e[$c]; 
+					unset( $e[$c] );
+					continue;
+					
+				}else{
+					return 2;
+				} 
+
+				if( isset($aux[0]) ){
+					$name =& $aux[0];
+					unset( $aux[0] );
+					// if( has_value )
+					//		$values[$name] = $this->value($v,$aux);
+					$values[$name] = $aux;
+
+				}else{ // que merda é essa?
+					// como você chegou aqui?
+					$values[] = $aux;
+				}
+				// valida, gera valores, diz se é sql ou precisa escapar e aspas
+			}
+			if( $args_count == 0 && count($args) > 1 ){
+				$defaults =& $values;
+				unset( $values );
+			}else{
+				$entries[] =& $values;
+			}
+			$args_count++;
+		}
+
+		$r = array(
+			'entries' =>& $entries,
+			'defaults' =>& $defaults
+		);
+		return $r;
+	}
 
 
 	// remove
