@@ -42,7 +42,7 @@ class Decoder{
 		$ant = false;
 
 		$ms;
-        preg_match_all( "/[:)(]/",$text,$ms,PREG_OFFSET_CAPTURE); 
+		preg_match_all( "/[:)(]/",$text,$ms,PREG_OFFSET_CAPTURE); 
 		$ms = $ms[0];
 		foreach( $ms as $m ){
 			$ch = $m[0];
@@ -96,7 +96,7 @@ class Decoder{
 			if( $ant === false ){
 				$matches[] = $text;
 			}else{
-				$matches[substr($text, $last, $c-$last )] = true;
+				$matches[substr($text, $last/*, $c-$last*/ )] = true;
 			}
 		}
 		return $matches;

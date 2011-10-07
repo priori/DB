@@ -38,11 +38,25 @@ td, th{ border: solid 1px #aaa; padding: 2px 5px; text-align: left;
 <body>
 <table><pre>
 <?php
+             
 
 v( array('asdfasdf'=>'asldkfja','nome'=>'Super',
 	array('nome'=>'Leonardo'),
 	'x' => 'xv'
 ) );
+
+
+
+v( array(
+	
+	'a:a' => true,
+	'b:sql' => "asdf",
+	"c:sql(? > 9)" => "jhlak sdjfasdf",
+	"d:sql( ? > ?)" => array("a","b"),
+	"e" => "ajsdç flkjasçdflkj "
+
+
+));
 
 
 

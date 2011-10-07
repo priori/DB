@@ -279,8 +279,6 @@ class Model  implements arrayaccess{
 		return $r0;
 	}
 	
-	// private function _values( &$names, &$entries, &$q, &$need_transaction, 
-	// 	&$special, &$default_values, &$default_special ){
 	private function _values( &$q, &$entries, &$names, &$need_transaction,
 			&$default_values ){
 
@@ -349,67 +347,51 @@ class Model  implements arrayaccess{
 		// }
 	}
 	
-	private function add_val( &$q, &$attr, &$default_values ){
-		$v;
-		if( isset($attr['content']) ){
-			$v =& $attr['content'];
-		}else if( isset($default_values['content']) ){
-			$v =& $default_values['content'];
-			$attr =& $default_values;
-		}else{
-			// if now: poe o now; else:
-			$q[] = 'DEFAULT';
-			return;
-		}
-		
+	private function _value( &$attr, &$value ){
+
 		if( isset($attr['sql']) ){
 			if( is_string($attr['sql']) ){
 				
-				$a = $attr['content']; 
-				if( is_string($a) ){
-					$a = array(array('name'=>$a));
+				if( is_string($value) ){
+					$value = array( $value );
 				}
 				// se nao for array, error!
 				$sql = $attr['sql']; // & ?
-				foreach( $a as $c => $v ){
-					// solução estranha
-					// modo mais facil era usar o $v['name']
-					$a[$c] = '\''.$this->db->escape($v['name']).'\''; 
+				foreach( $value as $c => $v ){
+					$value[$c] = '\''.$this->db->escape($v).'\''; 
 				}
 				$sql = strtr($sql,array('%'=>"%%",'?'=>"%s"));
-				$q[] = vsprintf($sql,$a);
+				$value =& vsprintf($sql,$value);
+				return true;
 			}else{
-				$q[] = $attr['content']; // & ?
+				$value =& $value; // & ?
+				return true;
 			}
 			
-			
-		}else if( $v === NULL ){
-			$q[] = 'NULL';
+		}else if( $value === NULL ){
+			$value = 'NULL';
+			return true;
+
+		}elseif( isset($attr['serialize']) ){
+			$value =& serialize($value);
+
 		}else{
-			if( isset($attr['serialize']) ){ 
-				// || is_object($attr['serialize']) || 
-				// is_array($attr['serialize'])
-				// content array poderiam estar maculados pela funcao que 
-				// decodifica as macros
-				// eh preciso fazer colocar exeções na função
-				$v =& serialize($attr['content']);
-			}
+			// if has many ...
+			// else
+			
 			if( isset($attr['trim']) ){ 
-				$v =& trim($attr['content']);
-			}
-			if( isset($attr['trim']) ){ 
-				$v =& trim($attr['content']);
+				$value =& trim($value);
 			}
 			if( isset($attr['upper_case']) || isset($attr['upper']) ){ 
-				$v =& strtoupper($attr['content']);
+				$value =& strtoupper($value);
 			}
 			if( isset($attr['lower_case']) || isset($attr['lower']) ){ 
-				$v =& strtolower($attr['content']);
+				$value =& strtolower($value);
 			}
 			
 			$type = false;
 			if( isset($attr['int']) ){
-				$valid = is_int($v) || ((int)$v).'' == ''.$v;
+				$valid = is_int($value) || ((int)$value).'' == ''.$value;
 				$this->add_error($this->get_alias_name($attr),'not_int');
 				$type = true;
 			}
@@ -418,11 +400,11 @@ class Model  implements arrayaccess{
 				
 				if( !is_string($attr['date']) )error();
 				
-				$aux = $this->sql_date($v,$attr['date']);
+				$aux = $this->sql_date($value,$attr['date']);
 				if( $aux === false ){
 					$this->add_error($this->get_alias_name($attr),'format_date');
 				}
-				$v =& $aux;
+				$value =& $aux;
 				
 				$type = true;
 			}
@@ -436,11 +418,11 @@ class Model  implements arrayaccess{
 				if( $b > $t ){
 					die('o maior tem que ser maior que o menor');
 				}
-				if( strlen($v)>$t ){
+				if( strlen($value)>$t ){
 					// error
 					$this->add_error($this->get_alias_name($attr),'grande');
 				}
-				if( strlen($v)<$b ){
+				if( strlen($value)<$b ){
 					$this->add_error($this->get_alias_name($attr),'pequeno');
 				}
 				$type = true;
@@ -450,40 +432,28 @@ class Model  implements arrayaccess{
 				$type = true;
 			}
 			
-			$q[] = '\'';
-			$q[] = $this->db->escape( $v );
-			$q[] = '\'';
+			
+			if( $value === false ){
+				$value = "0";
+				return true;
+			}
+			if( $value === true ){
+				$value = "1";
+				return true;
+			}
+			$value =& $this->db->escape( $value );
 		}
+
+
+		return false;
 	}
 	
-
-
-	// ajuda o set e o add
-	// pega nome da coluna, alias, vê ser é coluna, 
-	// se é relação é muitos, etc
-//	private function get_col_name( &$a ){
-//		return isset($a['col'])?$a['col']:(isset($a['name'])?
-//				$a['name']:false);
-//	}
-//	private function get_alias_name( &$a ){
-//		return isset($a['alias'])?$a['alias']:(isset($a['name'])?
-//				$a['name']:false);
-//	}
-//	private function is_col( &$attr ){
-//		return isset($attr['!']) && !isset($attr['model']) && 
-//			!is_array($attr['content']) || 
-//			is_array($attr['content']) && 
-//				(isset($attr['sql']) || isset($attr['serialize']) );
-//	}
-//	private function has_many( &$attr ){
-//		return isset($attr['model']) || is_array($attr['content']);
-//	}
 	
 	private $valid_macros = array('date'=>true,'time'=>true,'date_time'=>true,
 		'sql'=>true,'int'=>true,'decimal'=>true,'trim'=>true,'bool'=>true,
 		'now'=>true,'format'=>true,'parse'=>true);
 
-	public function build_args( &$args ){
+	public function build_args( &$args, &$parameters=false ){
 		if( !is_array( $args ) ){
 			$this->db->fire_error("Argumentos inválidos!");
 		}
@@ -500,28 +470,37 @@ class Model  implements arrayaccess{
 			$count = 0;
 			$e =& $args[$args_count];
 			$values = array();
+			$sqls = array();
 			foreach( $e as $c => $v ){
+				$sql = false;
 				$has_content = false;
 				if( is_string( $c ) ){
 					$aux =& Decoder::decode_string( $c );
-					if( isset($aux['content']) ){
-						return 1;
-					}
 					$has_content = true;
-					$aux['content'] = $v;
+					// if valid macros combination (attrs, model)
+					$sql = $this->_value($aux,$v);
 
 				// haverá esse caso mesmo?
 				}elseif( $c === $count && is_string($v) ){ 
+					// if tiver parameters
+					// usa o valor do parameter
+					// else
+					$this->db->fire_error("Argumentos inválidos! ".
+						"Os valores no Array devem ter chave String.");
+					// um dia posso dar suporte a isto, para setagem de opções
+					// now será uma exessão
 					$count++;
 					$aux = Decoder::decode_string( $v );
 
+				// Array de Array
 				}else if( $c===$count && $args_count == 0 && is_array($v) ){
 					$args[] =& $e[$c]; 
 					unset( $e[$c] );
 					continue;
 					
+				// Chave não string e valor de tipo não array ou array de array de array
 				}else{
-					return 2;
+					$this->db->fire_error("Argumentos inválidos!");
 				} 
 
 				if( isset($aux[0]) ){
@@ -529,13 +508,25 @@ class Model  implements arrayaccess{
 					unset( $aux[0] );
 					// if( has_value )
 					//		$values[$name] = $this->value($v,$aux);
-					$values[$name] = $aux;
+					if( isset( $values[$name] ) ){
+						$this->db->fire_error("Argumentos inválidos! ".
+								"Tentativa de setar o mesmo campo mais de uma vez.");
+						// campo, atributo ou coluna? qual o melhor nome?
+					}
+					$values[$name] = $v;
+					if( $sql ){
+						$sqls[$name] = true;
+					}
 
 				}else{ // que merda é essa?
 					// como você chegou aqui?
-					$values[] = $aux;
+					die("Por enquanto não tem como chegar aqui");
+					// $values[] = $aux;
 				}
 				// valida, gera valores, diz se é sql ou precisa escapar e aspas
+			}
+			if( count($sqls) > 0 ){
+				$values[] = $sqls;
 			}
 			if( $args_count == 0 && count($args) > 1 ){
 				$defaults =& $values;

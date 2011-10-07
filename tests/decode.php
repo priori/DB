@@ -27,6 +27,9 @@ table{border-collapse:collapse; }
 <?
 
 echo '<table>';
+
+
+
 decode( "asdfasdf:asdfasdf",
 	array ( 0 => 'asdfasdf', 'asdfasd' => true )) ;
 decode( "word:asdfasdf(asdfasd(asdf)fasdf)",
