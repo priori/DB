@@ -105,7 +105,6 @@ class Model  implements arrayaccess{
 	}
 	
 	public function __add(&$e,$replace=false,$multiple_inserctions=false){
-
 		$q = array();
 		if( $replace===true )
 			$q[] = 'REPLACE INTO `';
@@ -448,7 +447,6 @@ class Model  implements arrayaccess{
 		return false;
 	}
 	
-	
 	private $valid_macros = array('date'=>true,'time'=>true,'date_time'=>true,
 		'sql'=>true,'int'=>true,'decimal'=>true,'trim'=>true,'bool'=>true,
 		'now'=>true,'format'=>true,'parse'=>true);
@@ -544,7 +542,6 @@ class Model  implements arrayaccess{
 		return $r;
 	}
 
-
 	// remove
 	public function remove($t,$id){
 		$t = $this->db->escape($t);
@@ -552,7 +549,7 @@ class Model  implements arrayaccess{
 		return $this->db->_query("DELETE FROM `$t` WHERE id = '$id'");
 	}
 	
-    // get
+   // get
 	public function get($t,$id){
 		$t = $this->db->escape($t);
 		$id = (int)$id;
@@ -665,5 +662,4 @@ class Model  implements arrayaccess{
 	public function offsetExists($id){
 		
 	}
-	
 }

@@ -1,6 +1,5 @@
 <?php
 
-
 class Decoder{
 
 	static function mmacthed( &$mats, &$ant, &$attr_name, $content ){
@@ -28,9 +27,6 @@ class Decoder{
 		}
 		return true;
 	}
-
-
-
 
 	static function decode_string( $text )
 	{
@@ -103,7 +99,6 @@ class Decoder{
 
 	}
 
-
 	// 1 = attr value in some macro
 	const ATTR_VALUE_ERROR = 1;
 	const KEY_VALYE_ERROR = 2;
@@ -136,10 +131,3 @@ class Decoder{
 		return $r;   
 	}
 }
-
-
-
-
-
-
-
