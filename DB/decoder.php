@@ -11,7 +11,7 @@ class Decoder{
 					$mats[$attr_name] = true;
 				}
 				$attr_name = $content; // nao funciona com =&
-				if( !ereg('^[a-z_]+$',$attr_name) ){
+				if( !preg_match('/^[a-z_]+$/',$attr_name) ){
 					return false;
 				}
 

@@ -19,8 +19,7 @@ class DB{
 	private $error_mode = 1;
 	public $echo_queries = false;
 
-	public function __set( $a, $b )
-	{
+	public function __set( $a, $b ){
 
 		if( $a === 'error_mode' ){
 			if( $b !== 1 || $b !== 2 || $b !== 4 ){   
@@ -34,8 +33,7 @@ class DB{
 	}
 
 	
-	public function fire_error( $err )
-	{
+	public function fire_error( $err ){
 		if( $this->error_mode == 1 ){
 			$bt = debug_backtrace();
 			$d = false;
@@ -60,9 +58,9 @@ class DB{
 					if( is_string($d['args'][0]) ){
 						echo htmlspecialchars( $d['args'][0] );
 					}else{
-						echo $arg;
+						//
 					}
-					echo ']';
+					echo '] = ';
 				}
 				if( is_string($d['args'][1]) ){
 					echo htmlspecialchars( $d['args'][1] );
@@ -175,7 +173,8 @@ class DB{
 		}
 		
 		if( $err ){      
-			$this->fire_error( $this->db_error() );
+			$this->fire_error( "<strong>The data base return an error: </strong>".
+				$this->db_error() );
 			return false;
 		}             
 		if( $r === true )
