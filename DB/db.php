@@ -147,7 +147,7 @@ class DB{
 			$this->validation_errors = false;
 		}	            
 		if( $this->echo_queries ){
-			echo $q.'<br/>';  
+			echo htmlspecialchars($q).'<br/>';  
 		}
 		if( $this->mysqli_mode ){
 			$r = $this->link->query( $q );

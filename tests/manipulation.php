@@ -2,14 +2,22 @@
 
 include 'include.php'; 
 
+
 function test( $b, $msg ){
+	static $first = true;
+	static $s;
+	if( !$first ){
+		echo '</td></tr>';
+	}
 	if( $b ){
 		echo "<tr class=sucess><th>Sucess!</th><td>";
 	}else{
 		echo "<tr class=error><th>Error!</th><td>";
 	}
 	echo htmlentities($msg);
-	echo '</td></tr>';
+	echo "</td></tr><tr><td colspan=2>";
+	// ob_start();
+	$first = true;
 }
 
 ?><html>
@@ -21,6 +29,7 @@ table{ border-collapse: collapse }
 td, th{ border: solid 1px #aaa; padding: 2px 5px; text-align: left;
 	font-size: 11px  }
 .error{ color: #e22 }
+.sucess{ background-color: #d4e4f8 }
 </style>
 </head>
 <body>
@@ -30,7 +39,8 @@ td, th{ border: solid 1px #aaa; padding: 2px 5px; text-align: left;
 // primeiro teste
 $db = new DB();
 $db->select_db('test');
-$db->echo_queries = true;
+test(true,'');
+// $db->echo_queries = true;
 $db->query("TRUNCATE $db->pessoa");
 $db->pessoa[] = array('nome'=>'super');
 $db->pessoa[] = array('nome'=>'Leonardo Priori');
@@ -55,8 +65,8 @@ $db->pessoa->truncate();
 // inserir data
 $db->pessoa->add(array('nome:date(dd/mm/yyyy)'=>'01/10/2011'));
 $p = $db->query('SELECT * FROM pessoa');
-echo $p;
 $p = $p->fetch();
+test( $p['nome'] == '2011-10-01', 'Date format '.$p['nome']);
 
 
 $db->pessoa->truncate();
@@ -72,7 +82,7 @@ test( !isset($db->pessoa[51]), 'Dropping entry!' );
 // inserir sql modo 1, modo 2, modo 3
 
 ?>
-</table>
+</td></table>
 </body>
 </html>
 
