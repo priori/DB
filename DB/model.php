@@ -23,9 +23,8 @@ class Model  implements arrayaccess{
 	public function set( $id, $args ){
 		$args = Decoder::decode_array( $args );
 		if( is_array($id) || is_object($id) ){
-			// não boa ideia, e a chave primaira for com duas colunas?
-			$this->db->fire_error("Id não é um valor válido");
-			// $id = Decoder::decode_string( $id );
+			// para evitar xss
+			$this->db->fire_error("Invalid arguments. Id can't be a array/object.");
 		}
 		return $this->_set( $id, $args );
 	}
@@ -411,7 +410,7 @@ class Model  implements arrayaccess{
 
 	public function build_args( &$args, &$parameters=false ){
 		if( !is_array( $args ) ){
-			$this->db->fire_error("Argumentos inválidos!");
+			$this->db->fire_error("Invalid arguments!");
 		}
 
 		$args = array( $args );
@@ -441,7 +440,7 @@ class Model  implements arrayaccess{
 					// if tiver parameters
 					// usa o valor do parameter
 					// else
-					$this->db->fire_error("Argumentos inválidos! ".
+					$this->db->fire_error("Invalid arguments! ".
 						"Os valores no Array devem ter chave String.");
 					// um dia posso dar suporte a isto, para setagem de opções
 					// now será uma exessão
@@ -456,7 +455,7 @@ class Model  implements arrayaccess{
 					
 				// Chave não string e valor de tipo não array ou array de array de array
 				}else{
-					$this->db->fire_error("Argumentos inválidos!");
+					$this->db->fire_error("Invalid arguments!");
 				} 
 
 				if( isset($aux[0]) ){
@@ -465,7 +464,7 @@ class Model  implements arrayaccess{
 					// if( has_value )
 					//		$values[$name] = $this->value($v,$aux);
 					if( isset( $values[$name] ) ){
-						$this->db->fire_error("Argumentos inválidos! ".
+						$this->db->fire_error("Invalid arguments! ".
 								"Tentativa de setar o mesmo campo mais de uma vez.");
 						// campo, atributo ou coluna? qual o melhor nome?
 					}

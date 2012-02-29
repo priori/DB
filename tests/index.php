@@ -46,6 +46,9 @@ include "tests/basic_manipulation.php";
 echo "<h2>Testing Errors</h2>";
 include "tests/simple_errors.php";
 
+echo "<h2>Manipulation Errors</h2>";
+include "tests/manipulation_errors.php";
+
 echo "<h2>Date Format</h2>";
 include "tests/date_format.php";
 
