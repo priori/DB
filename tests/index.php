@@ -22,7 +22,7 @@ function test( $b, $msg ){
 
 ?><html>
 <head>
-<title></title>
+<title>DB Tests</title>
 <style>
 body{ font-family: Arial; font-size: 11px }
 table{ border-collapse: collapse }
@@ -36,49 +36,15 @@ td, th{ border: solid 1px #aaa; padding: 2px 5px; text-align: left;
 <table>
 <?php
 
-// primeiro teste
-$db = new DB();
-$db->select_db('test');
-test(true,'');
+include "tests/connecting.php";
 // $db->echo_queries = true;
-$db->query("TRUNCATE $db->pessoa");
-$db->pessoa[] = array('nome'=>'super');
-$db->pessoa[] = array('nome'=>'Leonardo Priori');
-$db->pessoa->add( array('nome'=>'Filipe') );
-$db->pessoa[] = array('nome'=>'Rafael');
-$db->pessoa->replace( array('nome'=>'Homem Aranha') );
-$db->pessoa[] = array('nome'=>'Dois');
-$r = $db->query('SELECT * FROM pessoa');
-test( count($r) == 6, 'inserir 6 valores');
-$nomes = array('super','Leonardo Priori','Filipe','Rafael','Homem Aranha','Dois');
-$c = 0;
-$b = true;
-foreach( $r as $v ){
-	if( $v['nome'] != $nomes[$c] ){
-		$b = false;
-	}
-	$c++;
-}
-test( $b, 'valores conferem' );
 
-$db->pessoa->truncate();
-// inserir data
-$db->pessoa->add(array('nome:date(dd/mm/yyyy)'=>'01/10/2011'));
-$p = $db->query('SELECT * FROM pessoa');
-$p = $p->fetch();
-test( $p['nome'] == '2011-10-01', 'Date format '.$p['nome']);
+echo "<h2>Basic Manipulation</h2>";
+include "tests/basic_manipulation.php";
 
+include "tests/date_format.php";
 
-$db->pessoa->truncate();
-$db->pessoa->add(array("nome" => "AA", "id" => 51));
-test( isset($db->pessoa[51]), 'Inserting entry!' );
-$db->pessoa[51] = array("nome" => "Super" );
-$p = $db->pessoa[51]->fetch();
-test( $p['nome'] == "Super", 'Value updated!' );
-echo $db->query("SELECT * FROM $db->pessoa");
-unset($db->pessoa[51]);
-test( !isset($db->pessoa[51]), 'Dropping entry!' );
-
+include "tests/array_like.php";
 // inserir sql modo 1, modo 2, modo 3
 
 ?>
