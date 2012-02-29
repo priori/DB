@@ -30,6 +30,7 @@ td, th{ border: solid 1px #aaa; padding: 2px 5px; text-align: left;
 	font-size: 11px  }
 .error{ color: #e22 }
 .sucess{ background-color: #d4e4f8 }
+h2{ margin: 0 }
 </style>
 </head>
 <body>
@@ -42,8 +43,13 @@ include "tests/connecting.php";
 echo "<h2>Basic Manipulation</h2>";
 include "tests/basic_manipulation.php";
 
+echo "<h2>Testing Errors</h2>";
+include "tests/simple_errors.php";
+
+echo "<h2>Date Format</h2>";
 include "tests/date_format.php";
 
+echo "<h2>Array Like</h2>";
 include "tests/array_like.php";
 // inserir sql modo 1, modo 2, modo 3
 

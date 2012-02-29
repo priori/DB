@@ -22,7 +22,7 @@ class DB{
 	public function __set( $a, $b ){
 
 		if( $a === 'error_mode' ){
-			if( $b !== 1 || $b !== 2 || $b !== 4 ){   
+			if( $b !== 1 && $b !== 2 && $b !== 4 ){   
 				$this->fire_error( "Modo de erro invalido!" );   
 			}
 			$this->error_mode = $b;
@@ -39,8 +39,7 @@ class DB{
 			$d = false;
 			foreach( $bt as $t ){
 				 // && basename($t['file']) == 'db.php' 
-				if( $t['class'] === 'DB' ||
-						$t['class'] === 'Model'	){ // aqui esta o segredo
+				if( isset($t['class']) && ($t['class'] === 'DB' || $t['class'] === 'Model')){ // aqui esta o segredo
 					$d = $t;  
 					continue;
 				}                 
