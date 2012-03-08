@@ -163,7 +163,6 @@ class Model  implements arrayaccess{
 
 				}
 
-
 				// if( $name && true ){ // $this->is_col($attr) ) // is col
 				// 	
 				// 	$entries[0][$name] =& $e[$c];
@@ -272,9 +271,13 @@ class Model  implements arrayaccess{
 	}
 
 	private function add_val( &$q, &$b, &$c ){
-		$q[] = '\'';
-		$q[] = $this->db->escape($b['content']);
-		$q[] = '\'';
+		if( is_int($b['content']) || is_float($b['content']) ){
+			$q[] = $b['content'];
+		}else{
+			$q[] = '\'';
+			$q[] = $this->db->escape($b['content']);
+			$q[] = '\'';
+		}
 	}
 	
 	private function _values( &$q, &$entries, &$names, &$need_transaction,

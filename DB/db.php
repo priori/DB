@@ -195,7 +195,7 @@ class DB{
 		return mysql_insert_id($this->link);
 	}
 	public function escape(&$s){
-		if( is_array($s))var_dump($s);
+		// if( is_array($s))var_dump($s);
 		if( $this->mysqli_mode )
 			return $this->link->real_escape_string($s);
 		return mysql_real_escape_string($s,$this->link);

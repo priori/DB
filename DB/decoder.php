@@ -102,8 +102,7 @@ class Decoder{
 	// 1 = attr value in some macro
 	const ATTR_VALUE_ERROR = 1;
 	const KEY_VALYE_ERROR = 2;
-	static function decode_array( $a )
-	{
+	static function decode_array( $a ){
 		$count = 0;
 		$r = array();
 		foreach( $a as $c => $v ){

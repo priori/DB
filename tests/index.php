@@ -52,6 +52,9 @@ include "tests/manipulation_errors.php";
 echo "<h2>Date Format</h2>";
 include "tests/date_format.php";
 
+echo "<h2>SQL macro</h2>";
+include "tests/sql_macro.php";
+
 echo "<h2>Array Like</h2>";
 include "tests/array_like.php";
 // inserir sql modo 1, modo 2, modo 3
