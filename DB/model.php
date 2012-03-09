@@ -23,9 +23,8 @@ class Model  implements arrayaccess{
 	public function set( $id, $args ){
 		$args = Decoder::decode_array( $args );
 		if( is_array($id) || is_object($id) ){
-			// não boa ideia, e a chave primaira for com duas colunas?
-			$this->db->fire_error("Id não é um valor válido");
-			// $id = Decoder::decode_string( $id );
+			// para evitar xss
+			$this->db->fire_error("Invalid arguments. Id can't be a array/object.");
 		}
 		return $this->_set( $id, $args );
 	}
@@ -36,22 +35,16 @@ class Model  implements arrayaccess{
 		$q[] = $this->name;
 		$q[] = '` SET ';
 		$b = false;
-		foreach( $attrs as $attr ){
+		foreach( $attrs as $name => $attr ){
 			$v;
-			if( isset($attr['col']) ){
-				$c =& $attr['col'];
-			}else if( isset($attr['name']) ){
-				$c =& $attr['name'];
-			}else{
-				continue;
-			}
+
 			if( $b ){
 				$q[] = ', ';
 			}else{
 				$b = true;
 			}
 			$q[] = '`';
-			$q[] = $this->db->escape($c);
+			$q[] = $this->db->escape($name);
 			$q[] = '` = ';
 			
 			$this->add_val( $q, $attr, $n );
@@ -104,8 +97,7 @@ class Model  implements arrayaccess{
 		return $this->__add($e,$replace);
 	}
 	
-	public function __add(&$e,$replace=false,$multiple_inserctions=false){
-
+	public function __add(&$e,$replace=false,$multiple_insertions=false){
 		$q = array();
 		if( $replace===true )
 			$q[] = 'REPLACE INTO `';
@@ -138,7 +130,7 @@ class Model  implements arrayaccess{
 		$entries_count = 0;
 		$has_more_entries = true;
 		while( $has_more_entries ){
-			if( !$multiple_insercations ){
+			if( !$multiple_insertions ){
 				$has_more_entries = false;
 				$entry =& $e;
 			}else{
@@ -170,7 +162,6 @@ class Model  implements arrayaccess{
 				}else{
 
 				}
-
 
 				// if( $name && true ){ // $this->is_col($attr) ) // is col
 				// 	
@@ -235,7 +226,7 @@ class Model  implements arrayaccess{
 		}
 		$q[] = ') VALUES ';
 
-		if( !$multiple_insercations ){
+		if( !$multiple_insertions ){
 			return $this->_values( $q, $entries, $names, $need_transaction,
 					$default_values );
 		}
@@ -278,11 +269,19 @@ class Model  implements arrayaccess{
 		
 		return $r0;
 	}
+
+	private function add_val( &$q, &$b, &$c ){
+		if( is_int($b['content']) || is_float($b['content']) ){
+			$q[] = $b['content'];
+		}else{
+			$q[] = '\'';
+			$q[] = $this->db->escape($b['content']);
+			$q[] = '\'';
+		}
+	}
 	
 	private function _values( &$q, &$entries, &$names, &$need_transaction,
 			&$default_values ){
-
-
 		$b2 = false;
 		foreach( $entries as $entry ){
 			if( $b2 )
@@ -300,55 +299,15 @@ class Model  implements arrayaccess{
 				}else{
 					$q[] = 'DEFAULT';
 				}
-				// if( isset($entry[$name])  ){ // coisa maluca, esquisito
-				// 	$attr =& $entry[$name];            
-				// 	$this->add_val( $q, $attr, $default_values );  
-				// }elseif( isset($default_values[$name]) ){
-				// 	$attr =& $default_values[$name];    
-				// 	$this->add_val( $q, $attr, $default_values );  
-				// }else{
-				// 	$q[] = 'DEFAULT';
-				// 	$b = true;
-				// 	continue;
-				// }
 				$b = true;
 			}
 			$q[] = ')';
 			$b2 = true;
 		}
-		
 		return $this->db->_query( implode('',$q) );
-		
-		
-		// if( $need_transaction ){
-		// 	$this->db->begin(true);
-		// 	$r1 = $this->db->_query( implode('',$q) );
-		// 	$id = $this->db->insert_id();
-		// 	foreach( $special as $attr ){
-		// 		$n = $this->get_col_name($attr);
-		// 		if( is_array($attr['content']) && $n ){
-		// 			$fk = $this->name.'_id';
-		// 			if( isset($attr['fk']) )
-		// 			$fk = $attr['fk'];
-		// 			$attr['content'][] = array('!'=>true,'col'=>$fk,
-		// 					'content'=>''.$id ,'name'=>$fk);
-		// 			$r = $this->db->$n->__add( $attr['content'] );
-		// 			if( $r === false ){
-		// 				$this->db->end();
-		// 				return $r;
-		// 			}
-		// 		}
-		// 	}
-		// 	$this->db->end();
-		// 	return $r1;
-		// 	
-		// }else{
-		// 	return $this->db->_query( implode('',$q) );
-		// }
 	}
 	
 	private function _value( &$attr, &$value ){
-
 		if( isset($attr['sql']) ){
 			if( is_string($attr['sql']) ){
 				
@@ -448,14 +407,13 @@ class Model  implements arrayaccess{
 		return false;
 	}
 	
-	
 	private $valid_macros = array('date'=>true,'time'=>true,'date_time'=>true,
 		'sql'=>true,'int'=>true,'decimal'=>true,'trim'=>true,'bool'=>true,
 		'now'=>true,'format'=>true,'parse'=>true);
 
 	public function build_args( &$args, &$parameters=false ){
 		if( !is_array( $args ) ){
-			$this->db->fire_error("Argumentos inválidos!");
+			$this->db->fire_error("Invalid arguments!");
 		}
 
 		$args = array( $args );
@@ -485,7 +443,7 @@ class Model  implements arrayaccess{
 					// if tiver parameters
 					// usa o valor do parameter
 					// else
-					$this->db->fire_error("Argumentos inválidos! ".
+					$this->db->fire_error("Invalid arguments! ".
 						"Os valores no Array devem ter chave String.");
 					// um dia posso dar suporte a isto, para setagem de opções
 					// now será uma exessão
@@ -500,7 +458,7 @@ class Model  implements arrayaccess{
 					
 				// Chave não string e valor de tipo não array ou array de array de array
 				}else{
-					$this->db->fire_error("Argumentos inválidos!");
+					$this->db->fire_error("Invalid arguments!");
 				} 
 
 				if( isset($aux[0]) ){
@@ -509,7 +467,7 @@ class Model  implements arrayaccess{
 					// if( has_value )
 					//		$values[$name] = $this->value($v,$aux);
 					if( isset( $values[$name] ) ){
-						$this->db->fire_error("Argumentos inválidos! ".
+						$this->db->fire_error("Invalid arguments! ".
 								"Tentativa de setar o mesmo campo mais de uma vez.");
 						// campo, atributo ou coluna? qual o melhor nome?
 					}
@@ -544,7 +502,6 @@ class Model  implements arrayaccess{
 		return $r;
 	}
 
-
 	// remove
 	public function remove($t,$id){
 		$t = $this->db->escape($t);
@@ -552,10 +509,10 @@ class Model  implements arrayaccess{
 		return $this->db->_query("DELETE FROM `$t` WHERE id = '$id'");
 	}
 	
-    // get
-	public function get($t,$id){
-		$t = $this->db->escape($t);
-		$id = (int)$id;
+   // get
+	public function get($id){
+		$t = $this->name;
+		$id = $this->db->escape($id);
 		return $this->db->_query("SELECT * FROM `$t` WHERE id = '$id'");
 	}
 	
@@ -657,13 +614,23 @@ class Model  implements arrayaccess{
 		}
 	}
 	public function offsetGet($id ){
-		
+		$t = $this->name;
+		$id = $this->db->escape($id);
+		return $this->db->_query("SELECT * FROM `$t` WHERE id = '$id'");
 	}
 	public function offsetUnset($id){
-		
+		$t = $this->name;
+		$id = $this->db->escape($id);
+		return $this->db->_query("DELETE FROM `$t` WHERE id = '$id'");
 	}
 	public function offsetExists($id){
-		
+		$t = $this->name;
+		$id = $this->db->escape($id);
+		$r = $this->db->_query("SELECT 1 FROM `$t` WHERE id = '$id'");
+		return $r->num_rows() > 0;
 	}
-	
+	public function truncate(){
+		$t = $this->name;
+		return $this->db->_query("TRUNCATE `$t`");
+	}
 }

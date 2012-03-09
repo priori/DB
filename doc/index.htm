@@ -1,0 +1,270 @@
+<!DOCTYPE html> 
+<html> 
+	<head> 
+		<title>Priori DB </title> 
+		<link rel=stylesheet href=style.css> 
+		<style type=text/css> 
+			h3{
+				margin-bottom: 0
+			}
+			pre code {
+				-moz-border-radius:3px 3px 3px 3px;
+				padding:4px;
+				text-shadow:0 1px 0 #000000;
+				font-size: 11px
+			}
+			div.item{
+				float: left; width: 345px;
+			}
+			pre .comment, pre .java .annotation, pre .python .decorator, pre .template_comment, 
+						pre .pi, pre .doctype, pre .deletion, pre .shebang, pre .apache .sqbracket, 
+						pre .tex .formula {
+				color:#dd6 !important;
+			}
+		</style> 
+		<link rel=stylesheet href=dark.css> 
+	</head> 
+	<body> 
+		<div class=container_16><div class=grid_16 id=header> 
+				<h1>Priori DB</h1>	
+			</div> 
+			<hr> 
+			<div class=grid_13><div id=content> 
+					<h2>A Biblioteca</h2> 
+					<div class=entry> 
+						<p>DB Priori é uma biblioteca para manuseio de Banco de Dados 
+						(por enquanto só MySQL).
+						O desenvolvimento é fortemente ligado a testes de performance.
+						Não é nescessário criar classes  para refletir tabelas, nem
+						seguir um padrão para arquivos e pastas. Por isto
+						penso que a ideologia dela é ser menos burocrática possível.
+						</p> 
+						<p>
+						Por enquanto algumas funcionalidades não estam prontas (set_model
+						e algumas checagens de erros).
+						</p>
+					</div> 
+					<h2>O Básico</h2> 
+					<div class=entry> 
+						<div class=item style=margin-right:10px>
+							<h3>Conectando</h3>
+							<pre><code>&lt;?php
+$db = new DB();
+// valores padrão são
+// 'localhost', 'root' e ''
+$db-&gt;select_db('test');</code></pre>
+							</div> 
+							</div><div class=item>
+							<h3>Queries</h3>
+							<pre><code>&lt;?php
+$db-&gt;query('
+  SELECT * FROM pessoa
+  WHERE nome = ?
+', $_POST['nome'] );</code></pre>
+							</div><br style=clear:both/><div class=item style=margin-right:10px>
+							<h3>Atualizando</h3>
+							<pre><code>&lt;?php
+$db-&gt;pessoa-&gt;set( $id, array(
+  'nome' =&gt; 'Minha Casa',
+  'data_de_nacimento' =&gt; '1984-07-08',
+  'casa_id' =&gt; 5
+));</code></pre>
+							</div><div class=item>
+							<h3>Inserindo Dados</h3>
+							<pre><code>&lt;?php
+$db-&gt;pessoa-&gt;add(array(
+  'nome' =&gt; 'Minha Casa',
+  'data_de_nacimento' =&gt; '1984-07-08',
+  'casa_id' =&gt; 5
+));</code></pre>
+							</div><div class=item style=margin-right:10px>
+							<h3>Removendo</h3>
+							<pre><code>&lt;?php
+$db-&gt;pessoa-&gt;remove( $id );</code></pre>
+							</div><div class=item>
+							<h3>Resgatando</h3>
+							<pre><code>&lt;?php
+$db-&gt;pessoa-&gt;get( $id );</code></pre>
+							</div>
+							<br style=clear:both>
+							<h2>WHERE</h2><div class=item style=margin-right:10px>
+								<pre><code>&lt;?php
+$db-&gt;pessoa-&gt;set( array(
+	 'id' => $id,
+	 'pontos' => 35
+  ), array(
+	 'nome' =&gt; 'Minha Casa'
+));</code></pre>
+							</div><div class=item>
+							<pre><code>&lt;?php
+$db-&gt;pessoa-&gt;remove(array( 'pessId' => $id ));</code></pre>
+
+							<pre><code>&lt;?php
+$db-&gt;pessoa-&gt;get(array( 
+  'pessoaId' => $id,
+  'OR',
+  'pessoaId' => $id2
+));</code></pre>
+</div>
+<br style=clear:both/>
+<div class=entry> 
+	<div class=item style=margin-right:10px>
+		<h2>Macros</h2> 
+		<pre><code>&lt;?php
+$db-&gt;pessoa-&gt;add(array(
+  'nome:text(1-255)' =&gt; 'Minha Casa',
+  'data_de_nacimento:date(dd/mm/yyyy)' =&gt; 
+		'08/07/1984',
+  'casa_id:sql( ? + 1 )' =&gt; 5,
+  'asdfadf:sql' =&gt; 
+	 'SELECT MAX(data_de_nacimento) ... '
+));</code></pre>
+		</div> 
+		<div class=item>
+			<h2>Erros</h2> 
+			<pre><code>&lt;?php
+$r = $db-&gt;pessoa-&gt;add(...);
+if( !$r ){
+	echo "Erros no nome: ";
+	foreach( $db->errors('nome') as $v )
+		echo htmlspecialchars( $v );
+	echo 'Errors em geral!';
+	foreach( $db->errors() as $v )
+		echo htmlspecialchars( $v );
+}
+</code></pre>
+			</div> 
+		</div>
+		<br style=clear:both/>
+		<div class=entry> 
+			<div class=item style=margin-right:10px>
+				<h2>toString</h2> 
+				<pre><code class='php'>&lt;?php
+echo $db-&gt;errors();
+// &lt;ul&gt;
+//   &lt;li&gt;erro 1&lt;/li&gt; 
+//   &lt;li&gt;erro 2&lt;/li&gt;
+// &lt;/ul&gt;
+echo $db-&gt;query('SELECT ...');
+// &lt;table&gt;&lt;thead&gt;&lt;th&gt;coluna 1 ...
+</code></pre>
+				</div> 
+				</div><div class=item>
+				<h2>Modo Array</h2> 
+				<pre><code>&lt;?php
+$db-&gt;pessoa[] = array( 'nome' => 'Leonardo' );
+$db-&gt;pessoa[ 5 ] = array( 'nome' => "Filipe" );
+$eu = $db-&gt;pessoa[ 5 ];
+unset($db-&gt;pessoa[3]);</code></pre>
+				</div>
+				<br style=clear:both/>
+				<h2>has many e belongs to</h2> 
+				<div class=entry> 
+					<div class=item style=margin-right:10px>
+						<pre><code>&lt;?php
+$r = $db-&gt;pessoa-&gt;add(array(
+	'nome' => 'Leo',
+	'telefone:many' => array(
+		array('numero' => 165165),
+		array('numero' => 48945132)
+	)
+));
+// utiliza transactions
+// telefone:many ou :has_many(telefone)
+// para setar chave estrangeira :fk(col)
+</code></pre>
+					</div> 
+					</div><div class=item>
+					<pre><code class=php>&lt;?php
+$r = $db-&gt;pessoa-&gt;set( 3, array(
+  'nome' => 'Leo',
+  'casa:one' => array( 
+	 'numero' => 3, 
+	 'bairro' => 'Jundiai' 
+  )
+));
+// utiliza transactions
+// casa:one ou :belongs_to(casa)
+// para setar chave estrangeira :fk(col)</code></pre>
+					</div>
+					<br style=clear:both/>
+					<h2>Listando</h2> 
+					<div class=entry> 
+						<div class=item style=margin-right:10px>
+							<pre><code>&lt;?php
+$r = $db-&gt;pessoa-&gt;find(array(
+	'find_by' =&gt; 'nome',
+	'find' =&gt; $_GET['q'],
+	'page' =&gt; $_GET['page']
+));
+foreach( $r as $p ){
+	echo $p['nome'].' '.$p['idade'];
+	echo '&lt;br/&gt;';
+}
+if( $r-&gt;has_next_page() )
+	echo '...';
+if( $r-&gt;has_previous_page() )
+	echo '...';
+</code></pre>
+						</div> 
+						</div><div class=item>
+						<pre><code>&lt;?php
+foreach( $db-&gt;query('SELECT ...' as $v ){
+  echo $v['aasdf'];
+  echo '&lt;br/&gt;';
+}</code></pre>
+						<pre><code>&lt;?php
+$r = $db-&gt;pessoa-&gt;find(array(
+	'fields' =&gt; array('nome','id','idade'),
+	'where' =&gt; array( 'idade:gt' => 10 )
+));</code></pre>
+</div>
+<br style=clear:both>
+<h2>comportamento padrão dos campos e das tabelas</h2> 
+<div class=entry> 
+	<div class=item style=margin-right:10px>
+
+		<pre><code>&lt;?php
+$r = $db-&gt;set_model('pessoa',array(
+	'nome:text(1,255)',
+	'telefone:many',
+	'data_de_nacimento:text(dd/mm/yyyy)'
+));
+</code></pre>
+	</div> 
+	</div><div class="item">
+</div>
+<br style="clear: both"/>
+	</div> 
+</div> 
+<div id="sidebar" class="grid_3"> 
+	<ul class="nobullet"> 
+		<!-- Author information is disabled per default. Uncomment and fill in your details if you want to use it.
+		<li><h2>Author</h2>
+		<p>A little something about you, the author. Nothing lengthy, just an overview.</p>
+		</li>--> 
+		<li><h2>Links</h2> 
+		<ul> 
+			<li><a href='http://lpriori.org/blog/' title=''>L. Priori Organization</a></li> 
+		</ul> 
+		</li> 
+	</ul> 
+</div> 
+ </script> 
+ <hr /> 
+ <div id="footer" class="grid_16"> 
+	 <p> 
+	 &copy; 2010. L. Priori Organization. Powered by
+	 <a href="http://wordpress.org/">WordPress</a>. Theme design by <a href="http://wpshoppe.com/">WPShoppe</a>.
+	 </p> 
+ </div> 
+</div> 
+</div> 
+<script src=http://code.jquery.com/jquery-1.4.2.min.js></script> 
+<script src=highlight.pack.js></script> 
+<script type="text/javascript"> 
+hljs.tabReplace = '    ';
+hljs.initHighlightingOnLoad();
+</script>
+</body> 
+</html>
