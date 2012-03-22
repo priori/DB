@@ -109,12 +109,6 @@ class Model  implements arrayaccess{
 		// varias entradas, mas cada uma será inserida separadamente
 		$fazer_por_partes = false; // uma insersao multipla
 
-		// special é uma merda, tenho que melhorar isso
-		// coisa mal explicada
-		// $special = array();
-		// $specials = array();
-		// $specials[] = array();
-
 		$b = false; // precisa de virgula?
 		$entries_count = 0;
 		$has_more_entries = true;
@@ -151,65 +145,6 @@ class Model  implements arrayaccess{
 				}else{
 
 				}
-
-				// if( $name && true ){ // $this->is_col($attr) ) // is col
-				// 	
-				// 	$entries[0][$name] =& $e[$c];
-				// 	
-				// 	if( !isset($names[$name]) ){
-				// 		if( $b )
-				// 			$q[] = ', ';
-				// 		else{
-				// 			$b = true;
-				// 		}
-				// 		$q[] = '`';
-				// 		$q[] = $this->db->escape($name);
-				// 		$q[] = '`';
-				// 		$names[$name] = true;
-				// 	}
-				// 	
-				// }else if( !$name && !isset($attr['content']) && !isset($attr['!']) ){ 
-				// 	
-				// 	$actual_entry = array();
-				// 	$actual_special = array();
-				// 	foreach( $attr as $attr2 ){
-				// 		$name2 = $this->get_col_name( $attr2 );
-				// 		
-				// 		if( $name2 && $this->is_col($attr2) ){ // is col
-				// 			
-				// 			$actual_entry[ $name2 ] = $attr2;
-				// 			if( !isset($names[$name2]) ){
-				// 				if( $b )
-				// 					$q[] = ', ';
-				// 				else{
-				// 					$b = true;
-				// 				}
-				// 				$q[] = '`';
-				// 				$q[] = $this->db->escape($name2);
-				// 				$q[] = '`';
-				// 				$names[$name2] = true;
-				// 			}
-				// 			
-				// 		}elseif( false ){ // has many, query after
-				// 			
-				// 			$fazer_por_partes = true;
-				// 			$actual_special[] = $attr2;
-				// 			$need_transaction = true;
-				// 			
-				// 		}else{ 
-				// 			die('nao aceita macros complicadas para insersoes '.
-				// 				'multiplas que nao na primeira insersao');
-				// 		}
-				// 	}
-				// 	$entries[] = $actual_entry;
-				// 	$specials[] = $actual_special;
-				// 	
-				// 	
-				// }else if( $this->has_many($attr) ){ // has many, query after,
-				// 	
-				// 	$specials[0][] = $attr;
-				// 	$need_transaction = true;
-				// }
 			}
 			$entries_count++;
 		}
@@ -219,43 +154,6 @@ class Model  implements arrayaccess{
 			return $this->_values( $q, $entries, $names, $need_transaction,
 					$default_values );
 		}
-		// $default_values;
-		// if( count($entries) > 1 ){
-		// 	$default_values =& $entries[0];
-		// 	array_shift( $entries );
-		// }
-		// $default_special;
-		// if( count($specials) > 1 ){
-		// 	$default_special =& $specials[0];
-		// 	array_shift( $specials );
-		// }
-		// 
-		// 
-		// if( $fazer_por_partes ){
-		// 	$len = count( $q );
-		// 	foreach( $entries as $c => $e ){
-		// 		$es = array();
-		// 		$es[] =& $e;
-		// 		$aux = $default_values;
-		// 		
-		// 		$r0 = $this->_values( $names, $es, $q, $need_transaction, 
-		// 				$specials[$c], $aux, $default_special );
-		// 		$q = array_slice($q, 0, $len);
-		// 	}
-		// 	
-		// }else{
-		// 	$a = array();
-		// 	foreach( $specials as $s ){
-		// 		foreach( $s as $c => $v ){
-		// 			$a[] =& $s[$c];
-		// 		}
-		// 	}
-		// 	return $this->_values( $names, $entries, $q, $need_transaction, 
-		// 			$a, $default_values, $default_special );
-		// 	
-		// }
-		
-		
 		return $r0;
 	}
 
