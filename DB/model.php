@@ -72,14 +72,49 @@ class Model  implements arrayaccess{
 		return $this->_add( $e, true );
 	}
 
-	private $macros = array();
-	private function validate( &$e, $tipo ){
+	private $macros = array('sql'=>true,'now'=>true,'date'=>true,'int'=>true,'text'=>true,
+			'format'=>true,'num'=>true,'numeric'=>true,'integer'=>true);
+	private $macro_alias = array('num'=>'numeric','int'=>'integer');
+	private $macro_optional_params = array('date'=>true,'text'=>true,'sql'=>true);
+	private $macro_required_params = array('format'=>true);
+	private function validate( &$e, &$vals, $tipo ){
+		// nao vamos pensar em vals por enquanto 
+		$r = true;
+		$msg = array();
+		foreach( $e as $macro => $params ){
+			if( !isset($this->macros[$macro]) ){
+				$msg[] = 'Invalid macro "';
+				$msg[] = $macro;
+				$msg[] = '"! ';
+				if( isset($this->macros[strtolower($macro)]) ){
+					$msg[] = 'Use lower case in macros. ';
+				}elseif( isset($this->macros[trim($macro)]) ){
+					$msg[] = 'Be aware of white spaces in macros. ';
+				}elseif( isset($this->macros[trim(strtolower($macro))]) ){
+					$msg[] = 'Use lower case and no white spaces in macros. ';
+				} 
+				continue;
+			}
+			if( isset($this->macro_alias[$macro]) && isset($e[$this->macro_alias[$macro]]) ){
+				$msg[] = 'Redundancy! Dont use "';
+				$msg[] = $macro;
+				$msg[] = '" with "';
+				$msg[] = $this->macro_alias[$macro];
+				$msg[] = '"! ';
+			}
+			if( isset($this->macro_required_params[$macro]) && false ){
+				$msg[] = 'Macro "';
+				$msg[] = $macro;
+				$msg[] = '" needs parameters! ';
+			}
+		}
 		return true;
 	}
 
 	public function _add(&$e,$replace=false){
 		$e =& Decoder::decode_array( $e );
-		if( !$this->validate($e,'add') ){ // e o replace?
+		$vals = false;
+		if( !$this->validate($e,$vals,'add') ){ // e o replace?
 			$this->db->fire_error("asdjfklajsdf");
 			return;
 		}
