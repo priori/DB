@@ -73,9 +73,10 @@ class Model  implements arrayaccess{
 	}
 
 	private $macros = array('sql'=>true,'now'=>true,'date'=>true,'int'=>true,'text'=>true,
-			'format'=>true,'num'=>true,'numeric'=>true,'integer'=>true);
+		'format'=>true,'num'=>true,'numeric'=>true,'integer'=>true, 'serialize'=true ); 
+	// microtime, date_time, required, length_gt, length_lt, gt, lt
 	private $macro_alias = array('num'=>'numeric','int'=>'integer');
-	private $macro_optional_params = array('date'=>true,'text'=>true,'sql'=>true);
+	private $macro_optional_params = array('date'=>true,'text'=>true,'sql'=>true); // numeric(size)
 	private $macro_required_params = array('format'=>true);
 	private function validate( &$e, &$vals, $tipo ){
 		// nao vamos pensar em vals por enquanto 
