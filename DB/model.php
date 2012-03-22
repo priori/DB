@@ -37,7 +37,6 @@ class Model  implements arrayaccess{
 		$b = false;
 		foreach( $attrs as $name => $attr ){
 			$v;
-
 			if( $b ){
 				$q[] = ', ';
 			}else{
@@ -46,54 +45,44 @@ class Model  implements arrayaccess{
 			$q[] = '`';
 			$q[] = $this->db->escape($name);
 			$q[] = '` = ';
-			
-			$this->add_val( $q, $attr, $n );
+			if( isset($attr['content']) ){ // ponteiro
+				$v = $attr['content'];
+			}else{
+				$this->db->fire_error('Chave sem valor!');
+				return;
+			}
+			$this->add_val( $q, $v, $attr, $name );
 		}
 		$q[] = ' WHERE ';
-		
 		$b = false;
 		$aux = array();
-		if( !is_array($id) ){
-			
-			$q[] = '`id` = \'';
-			$q[] = $this->db->escape($id);
-			$q[] = '\'';
-			
-		}else foreach( $id as $v ){
-			if( $b ){
-				$q[] = ' AND ';
-			}else{
-				$b = true;
-			}
-			$q[] = '`';
-			$q[] = $this->get_col_name( $v );
-			$q[] = '` = ';
-			$this->add_val( $q, $v, $aux );
-		}
-		// $q[] = $id;
-		
+		$q[] = '`id` = \'';
+		$q[] = $this->db->escape($id);
+		$q[] = '\'';
 		return $this->db->_query(implode('',$q));
 	}
 	
 	// add, insert
-	public function add( $e, $e2=false ){
-		if( $e2 !== false ){
-			$e2=false;
-			$e=func_get_args();
-		}
+	public function add( $e ){
+		// sem multiplas insersoes por enquanto
+		// if( $e2 !== false ){ $e2=false; $e=func_get_args(); } 
 		return $this->_add( $e, false );
 	}
-	public function replace( $e, $e2=false ){
-		if( $e2 !== false ){
-			$e2=false;
-			$e=func_get_args();
-		}
+	public function replace( $e ){
 		return $this->_add( $e, true );
+	}
+
+	private $macros = array();
+	private function validate( &$e, $tipo ){
+		return true;
 	}
 
 	public function _add(&$e,$replace=false){
 		$e =& Decoder::decode_array( $e );
-		// if( ! validate ) add error , return
+		if( !$this->validate($e,'add') ){ // e o replace?
+			$this->db->fire_error("asdjfklajsdf");
+			return;
+		}
 		return $this->__add($e,$replace);
 	}
 	
@@ -270,7 +259,7 @@ class Model  implements arrayaccess{
 		return $r0;
 	}
 
-	private function add_val( &$q, &$b, &$c ){
+	private function add_val( &$q, &$v, &$b, &$c ){
 		if( is_int($b['content']) || is_float($b['content']) ){
 			$q[] = $b['content'];
 		}else{
@@ -278,6 +267,7 @@ class Model  implements arrayaccess{
 			$q[] = $this->db->escape($b['content']);
 			$q[] = '\'';
 		}
+
 	}
 	
 	private function _values( &$q, &$entries, &$names, &$need_transaction,
@@ -294,8 +284,14 @@ class Model  implements arrayaccess{
 				}
 				$attr;
 				if( isset($entry[$name]) ){
-					$attr =& $entry[$name];
-					$this->add_val( $q, $attr, $attr );
+					$attr =& $entry[$name];  			
+					if( isset($attr['content']) ){ // ponteiro
+						$v = $attr['content'];
+					}else{
+						$this->db->fire_error('Chave sem valor!');
+						return;
+					}                
+					$this->add_val( $q, $v, $attr, $attr );
 				}else{
 					$q[] = 'DEFAULT';
 				}
