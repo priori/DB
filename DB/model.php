@@ -37,7 +37,6 @@ class Model  implements arrayaccess{
 		$b = false;
 		foreach( $attrs as $name => $attr ){
 			$v;
-
 			if( $b ){
 				$q[] = ', ';
 			}else{
@@ -46,54 +45,80 @@ class Model  implements arrayaccess{
 			$q[] = '`';
 			$q[] = $this->db->escape($name);
 			$q[] = '` = ';
-			
-			$this->add_val( $q, $attr, $n );
+			if( isset($attr['content']) ){ // ponteiro
+				$v = $attr['content'];
+			}else{
+				$this->db->fire_error('Chave sem valor!');
+				return;
+			}
+			$this->add_val( $q, $v, $attr, $name );
 		}
 		$q[] = ' WHERE ';
-		
 		$b = false;
 		$aux = array();
-		if( !is_array($id) ){
-			
-			$q[] = '`id` = \'';
-			$q[] = $this->db->escape($id);
-			$q[] = '\'';
-			
-		}else foreach( $id as $v ){
-			if( $b ){
-				$q[] = ' AND ';
-			}else{
-				$b = true;
-			}
-			$q[] = '`';
-			$q[] = $this->get_col_name( $v );
-			$q[] = '` = ';
-			$this->add_val( $q, $v, $aux );
-		}
-		// $q[] = $id;
-		
+		$q[] = '`id` = \'';
+		$q[] = $this->db->escape($id);
+		$q[] = '\'';
 		return $this->db->_query(implode('',$q));
 	}
 	
 	// add, insert
-	public function add( $e, $e2=false ){
-		if( $e2 !== false ){
-			$e2=false;
-			$e=func_get_args();
-		}
+	public function add( $e ){
+		// sem multiplas insersoes por enquanto
+		// if( $e2 !== false ){ $e2=false; $e=func_get_args(); } 
 		return $this->_add( $e, false );
 	}
-	public function replace( $e, $e2=false ){
-		if( $e2 !== false ){
-			$e2=false;
-			$e=func_get_args();
-		}
+	public function replace( $e ){
 		return $this->_add( $e, true );
+	}
+
+	private $macros = array('sql'=>true,'now'=>true,'date'=>true,'int'=>true,'text'=>true,
+		'format'=>true,'num'=>true,'numeric'=>true,'integer'=>true, 'serialize'=>true ); 
+	// microtime, date_time, required, length_gt, length_lt, gt, lt
+	private $macro_alias = array('num'=>'numeric','int'=>'integer');
+	private $macro_optional_params = array('date'=>true,'text'=>true,'sql'=>true); // numeric(size)
+	private $macro_required_params = array('format'=>true);
+	private function validate( &$e, &$vals, $tipo ){
+		// nao vamos pensar em vals por enquanto 
+		$r = true;
+		$msg = array();
+		foreach( $e as $macro => $params ){
+			if( !isset($this->macros[$macro]) ){
+				$msg[] = 'Invalid macro "';
+				$msg[] = $macro;
+				$msg[] = '"! ';
+				if( isset($this->macros[strtolower($macro)]) ){
+					$msg[] = 'Use lower case in macros. ';
+				}elseif( isset($this->macros[trim($macro)]) ){
+					$msg[] = 'Be aware of white spaces in macros. ';
+				}elseif( isset($this->macros[trim(strtolower($macro))]) ){
+					$msg[] = 'Use lower case and no white spaces in macros. ';
+				} 
+				continue;
+			}
+			if( isset($this->macro_alias[$macro]) && isset($e[$this->macro_alias[$macro]]) ){
+				$msg[] = 'Redundancy! Dont use "';
+				$msg[] = $macro;
+				$msg[] = '" with "';
+				$msg[] = $this->macro_alias[$macro];
+				$msg[] = '"! ';
+			}
+			if( isset($this->macro_required_params[$macro]) && false ){
+				$msg[] = 'Macro "';
+				$msg[] = $macro;
+				$msg[] = '" needs parameters! ';
+			}
+		}
+		return true;
 	}
 
 	public function _add(&$e,$replace=false){
 		$e =& Decoder::decode_array( $e );
-		// if( ! validate ) add error , return
+		$vals = false;
+		if( !$this->validate($e,$vals,'add') ){ // e o replace?
+			$this->db->fire_error("asdjfklajsdf");
+			return;
+		}
 		return $this->__add($e,$replace);
 	}
 	
@@ -119,12 +144,6 @@ class Model  implements arrayaccess{
 
 		// varias entradas, mas cada uma será inserida separadamente
 		$fazer_por_partes = false; // uma insersao multipla
-
-		// special é uma merda, tenho que melhorar isso
-		// coisa mal explicada
-		// $special = array();
-		// $specials = array();
-		// $specials[] = array();
 
 		$b = false; // precisa de virgula?
 		$entries_count = 0;
@@ -162,65 +181,6 @@ class Model  implements arrayaccess{
 				}else{
 
 				}
-
-				// if( $name && true ){ // $this->is_col($attr) ) // is col
-				// 	
-				// 	$entries[0][$name] =& $e[$c];
-				// 	
-				// 	if( !isset($names[$name]) ){
-				// 		if( $b )
-				// 			$q[] = ', ';
-				// 		else{
-				// 			$b = true;
-				// 		}
-				// 		$q[] = '`';
-				// 		$q[] = $this->db->escape($name);
-				// 		$q[] = '`';
-				// 		$names[$name] = true;
-				// 	}
-				// 	
-				// }else if( !$name && !isset($attr['content']) && !isset($attr['!']) ){ 
-				// 	
-				// 	$actual_entry = array();
-				// 	$actual_special = array();
-				// 	foreach( $attr as $attr2 ){
-				// 		$name2 = $this->get_col_name( $attr2 );
-				// 		
-				// 		if( $name2 && $this->is_col($attr2) ){ // is col
-				// 			
-				// 			$actual_entry[ $name2 ] = $attr2;
-				// 			if( !isset($names[$name2]) ){
-				// 				if( $b )
-				// 					$q[] = ', ';
-				// 				else{
-				// 					$b = true;
-				// 				}
-				// 				$q[] = '`';
-				// 				$q[] = $this->db->escape($name2);
-				// 				$q[] = '`';
-				// 				$names[$name2] = true;
-				// 			}
-				// 			
-				// 		}elseif( false ){ // has many, query after
-				// 			
-				// 			$fazer_por_partes = true;
-				// 			$actual_special[] = $attr2;
-				// 			$need_transaction = true;
-				// 			
-				// 		}else{ 
-				// 			die('nao aceita macros complicadas para insersoes '.
-				// 				'multiplas que nao na primeira insersao');
-				// 		}
-				// 	}
-				// 	$entries[] = $actual_entry;
-				// 	$specials[] = $actual_special;
-				// 	
-				// 	
-				// }else if( $this->has_many($attr) ){ // has many, query after,
-				// 	
-				// 	$specials[0][] = $attr;
-				// 	$need_transaction = true;
-				// }
 			}
 			$entries_count++;
 		}
@@ -230,47 +190,10 @@ class Model  implements arrayaccess{
 			return $this->_values( $q, $entries, $names, $need_transaction,
 					$default_values );
 		}
-		// $default_values;
-		// if( count($entries) > 1 ){
-		// 	$default_values =& $entries[0];
-		// 	array_shift( $entries );
-		// }
-		// $default_special;
-		// if( count($specials) > 1 ){
-		// 	$default_special =& $specials[0];
-		// 	array_shift( $specials );
-		// }
-		// 
-		// 
-		// if( $fazer_por_partes ){
-		// 	$len = count( $q );
-		// 	foreach( $entries as $c => $e ){
-		// 		$es = array();
-		// 		$es[] =& $e;
-		// 		$aux = $default_values;
-		// 		
-		// 		$r0 = $this->_values( $names, $es, $q, $need_transaction, 
-		// 				$specials[$c], $aux, $default_special );
-		// 		$q = array_slice($q, 0, $len);
-		// 	}
-		// 	
-		// }else{
-		// 	$a = array();
-		// 	foreach( $specials as $s ){
-		// 		foreach( $s as $c => $v ){
-		// 			$a[] =& $s[$c];
-		// 		}
-		// 	}
-		// 	return $this->_values( $names, $entries, $q, $need_transaction, 
-		// 			$a, $default_values, $default_special );
-		// 	
-		// }
-		
-		
 		return $r0;
 	}
 
-	private function add_val( &$q, &$b, &$c ){
+	private function add_val( &$q, &$v, &$b, &$c ){
 		if( is_int($b['content']) || is_float($b['content']) ){
 			$q[] = $b['content'];
 		}else{
@@ -278,6 +201,7 @@ class Model  implements arrayaccess{
 			$q[] = $this->db->escape($b['content']);
 			$q[] = '\'';
 		}
+
 	}
 	
 	private function _values( &$q, &$entries, &$names, &$need_transaction,
@@ -294,8 +218,14 @@ class Model  implements arrayaccess{
 				}
 				$attr;
 				if( isset($entry[$name]) ){
-					$attr =& $entry[$name];
-					$this->add_val( $q, $attr, $attr );
+					$attr =& $entry[$name];  			
+					if( isset($attr['content']) ){ // ponteiro
+						$v = $attr['content'];
+					}else{
+						$this->db->fire_error('Chave sem valor!');
+						return;
+					}                
+					$this->add_val( $q, $v, $attr, $attr );
 				}else{
 					$q[] = 'DEFAULT';
 				}
