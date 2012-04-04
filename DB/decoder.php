@@ -120,11 +120,11 @@ class Decoder{
 			}else{
 				return 2;
 			}
-			if( isset($aux[0]) ){
-				$r[$aux[0]] =& $aux;
+			if( isset($aux[0]) ){ // dont &
+				$r[$aux[0]] = $aux;
 				unset( $aux[0] );
 			}else{
-				$r[] =& $aux;
+				$r[] = $aux;
 			}
 		}    
 		return $r;   
