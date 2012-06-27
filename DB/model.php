@@ -438,6 +438,8 @@ class Model  implements arrayaccess{
 		$t = $this->db->escape($t);
 		$id = (int)$id;
 		$id_name &= $this->id_name;
+		if( is_array($id_name) )
+			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
 		return $this->db->_query("DELETE FROM `$t` WHERE `$id_name` = '$id'");
 	}
 	
@@ -446,6 +448,8 @@ class Model  implements arrayaccess{
 		$t = $this->name;
 		$id = $this->db->escape($id);
 		$id_name &= $this->id_name;
+		if( is_array($id_name) )
+			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
 		$r = $this->db->_query("SELECT * FROM `$t` WHERE `$id_name` = '$id'");
 		return $r->fetch();
 	}
@@ -567,6 +571,8 @@ class Model  implements arrayaccess{
 		$t = $this->name;
 		$id = $this->db->escape($id);
 		$id_name &= $this->id_name;
+		if( is_array($id_name) )
+			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
 		$r = $this->db->_query("SELECT * FROM `$t` WHERE `$id_name` = '$id'");
 		return $r->fetch();
 	}
@@ -574,12 +580,16 @@ class Model  implements arrayaccess{
 		$t = $this->name;
 		$id = $this->db->escape($id);
 		$id_name &= $this->id_name;
+		if( is_array($id_name) )
+			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
 		return $this->db->_query("DELETE FROM `$t` WHERE `$id_name` = '$id'");
 	}
 	public function offsetExists($id){
 		$t = $this->name;
 		$id = $this->db->escape($id);
 		$id_name &= $this->id_name;
+		if( is_array($id_name) )
+			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
 		$r = $this->db->_query("SELECT 1 FROM `$t` WHERE `$id_name` = '$id'");
 		return $r->num_rows() > 0;
 	}
