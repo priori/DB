@@ -7,6 +7,7 @@ class Model  implements arrayaccess{
 	private $args;
 	private $alias; // model name
 	private $name; // table scaped name
+	private $id_name;
 
 	public function Model( &$link, &$name, $args = false ){
 		$this->db =& $link;
@@ -436,14 +437,17 @@ class Model  implements arrayaccess{
 	public function remove($t,$id){
 		$t = $this->db->escape($t);
 		$id = (int)$id;
-		return $this->db->_query("DELETE FROM `$t` WHERE id = '$id'");
+		$id_name &= $this->id_name;
+		return $this->db->_query("DELETE FROM `$t` WHERE `$id_name` = '$id'");
 	}
 	
    // get
 	public function get($id){
 		$t = $this->name;
 		$id = $this->db->escape($id);
-		return $this->db->_query("SELECT * FROM `$t` WHERE id = '$id'");
+		$id_name &= $this->id_name;
+		$r = $this->db->_query("SELECT * FROM `$t` WHERE `$id_name` = '$id'");
+		return $r->fetch();
 	}
 	
 	// adiciona erro a transacao
@@ -535,6 +539,22 @@ class Model  implements arrayaccess{
 		// return eregi_replace('m',''.((int)$month),$format);
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	// array access
 	public function offsetSet($id,$val){
 		if( $id === NULL ){
@@ -546,17 +566,21 @@ class Model  implements arrayaccess{
 	public function offsetGet($id ){
 		$t = $this->name;
 		$id = $this->db->escape($id);
-		return $this->db->_query("SELECT * FROM `$t` WHERE id = '$id'");
+		$id_name &= $this->id_name;
+		$r = $this->db->_query("SELECT * FROM `$t` WHERE `$id_name` = '$id'");
+		return $r->fetch();
 	}
 	public function offsetUnset($id){
 		$t = $this->name;
 		$id = $this->db->escape($id);
-		return $this->db->_query("DELETE FROM `$t` WHERE id = '$id'");
+		$id_name &= $this->id_name;
+		return $this->db->_query("DELETE FROM `$t` WHERE `$id_name` = '$id'");
 	}
 	public function offsetExists($id){
 		$t = $this->name;
 		$id = $this->db->escape($id);
-		$r = $this->db->_query("SELECT 1 FROM `$t` WHERE id = '$id'");
+		$id_name &= $this->id_name;
+		$r = $this->db->_query("SELECT 1 FROM `$t` WHERE `$id_name` = '$id'");
 		return $r->num_rows() > 0;
 	}
 	public function truncate(){
