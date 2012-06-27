@@ -112,12 +112,10 @@ class Model  implements arrayaccess{
 		}
 		return true;
 	}
-
 	public function _add(&$e,$replace=false){
 		$e =& Decoder::decode_array( $e );
 		$vals = false;
 		if( !$this->validate($e,$vals,'add') ){ // e o replace?
-			$this->db->fire_error("asdjfklajsdf");
 			return;
 		}
 		return $this->__add($e,$replace);
@@ -434,9 +432,9 @@ class Model  implements arrayaccess{
 	}
 
 	// remove
-	public function remove($t,$id){
-		$t = $this->db->escape($t);
-		$id = (int)$id;
+	public function remove($id){
+		$t = $this->name;
+		$id = $this->db->escape($id);
 		$id_name &= $this->id_name;
 		if( is_array($id_name) )
 			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
@@ -452,6 +450,14 @@ class Model  implements arrayaccess{
 			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
 		$r = $this->db->_query("SELECT * FROM `$t` WHERE `$id_name` = '$id'");
 		return $r->fetch();
+	}
+	public function get_where( $w ){
+		// $w =& Decoder::decode_array( $w );
+		// $this->validate_where( $w );
+		$t = $this->name;
+		$q = array('SELECT * FROM `$t` WHERE ');
+		var_dump( $w );
+
 	}
 	
 	// adiciona erro a transacao
