@@ -496,6 +496,7 @@ class Model  implements arrayaccess{
 					$q[] = $v;
 					$q[] = ')';
 				}else{
+					// fazer data funcionar e verificacoes
 					if( is_array($v) && isset($c['in']) ){
 						// verificar se o array está normal
 						$b = false;
@@ -518,6 +519,7 @@ class Model  implements arrayaccess{
 						$q[] = '\'';
 					}
 				}
+				// falta outras macros
 			}
 			$or = false;
 		}
