@@ -455,9 +455,71 @@ class Model  implements arrayaccess{
 		// $w =& Decoder::decode_array( $w );
 		// $this->validate_where( $w );
 		$t = $this->name;
-		$q = array('SELECT * FROM `$t` WHERE ');
-		var_dump( $w );
-
+		$q = array("SELECT * FROM `$t` WHERE ");
+		$count = 0;
+		$or = true;
+		foreach( $w as $c => $v ){
+			if( $c === $count ){
+				if( $v === 'or' || $v === 'OR' ){
+					$q[] = " OR ";
+				}else{
+					$o = htmlspecialchars($v);
+					$this->db->fire_error("Operador desconhecido: <strong>$o</strong>");
+				}
+				$count++;
+				$or = true;
+				continue;
+			}else{
+				if( !$or ){
+					$q[] = ' AND `';
+				}else{
+					$q[] = '`';
+				}
+				$c = Decoder::decode_string($c);
+				$q[] = $this->db->escape($c[0]);
+				if( isset($c['gt']) )
+					$q[] = '` > ';
+				elseif( isset($c['lt']) )
+					$q[] = '` < ';
+				elseif( isset($c['ge']) )
+					$q[] = '` >= ';
+				elseif( isset($c['le']) )
+					$q[] = '` <= ';
+				elseif( isset($c['in']) )
+					$q[] = '` in ';
+				else
+					$q[] = '` = ';
+				if( isset($c['sql']) ){
+					$q[] = '(';
+					$q[] = $v;
+					$q[] = ')';
+				}else{
+					if( is_array($v) ){
+						$b = false;
+						$q[] = '(';
+						foreach( $v as $c2 => $v2 ){
+							if( $b ){
+								$q[] = ', \'';
+							}else{
+								$q[] = '\'';
+							}
+							$q[] = $this->db->escape($v2);
+							$q[] = '\'';
+							$b = true;
+						}
+						$q[] = ')';
+					}else{
+						$q[] = '\'';
+						$q[] = $this->db->escape($v);
+						$q[] = '\'';
+					}
+				}
+			}
+			$or = false;
+		}
+		// echo implode($q);
+		$r = $this->db->_query(implode($q));
+		return $r->fetch();
 	}
 	
 	// adiciona erro a transacao
