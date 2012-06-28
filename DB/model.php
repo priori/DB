@@ -477,6 +477,8 @@ class Model  implements arrayaccess{
 				}
 				$c = Decoder::decode_string($c);
 				$q[] = $this->db->escape($c[0]);
+				// verificar mais de um dentre gt, lt, ge, le, in
+				// verificar se tem alguma macro errada
 				if( isset($c['gt']) )
 					$q[] = '` > ';
 				elseif( isset($c['lt']) )
@@ -494,7 +496,8 @@ class Model  implements arrayaccess{
 					$q[] = $v;
 					$q[] = ')';
 				}else{
-					if( is_array($v) ){
+					if( is_array($v) && isset($c['in']) ){
+						// verificar se o array está normal
 						$b = false;
 						$q[] = '(';
 						foreach( $v as $c2 => $v2 ){
@@ -509,6 +512,7 @@ class Model  implements arrayaccess{
 						}
 						$q[] = ')';
 					}else{
+						// verficar se v está normal
 						$q[] = '\'';
 						$q[] = $this->db->escape($v);
 						$q[] = '\'';
