@@ -7,12 +7,12 @@ class Model  implements arrayaccess{
 	private $args;
 	private $alias; // model name
 	private $name; // table scaped name
-	private $id_name;
+	private $id_name = 'id';
 
 	public function Model( &$link, &$name, $args = false ){
 		$this->db =& $link;
 		$this->alias =& $name;
-		$this->name =& $link->escape( $name );
+		$this->name = $link->escape( $name ); // only variable should be assigned by reference
 		$this->args =& $args;
 	}
 	
@@ -113,10 +113,10 @@ class Model  implements arrayaccess{
 		return true;
 	}
 	public function _add(&$e,$replace=false){
-		$e =& Decoder::decode_array( $e );
+		$e = Decoder::decode_array( $e );
 		$vals = false;
 		if( !$this->validate($e,$vals,'add') ){ // e o replace?
-			return;
+			// return;
 		}
 		return $this->__add($e,$replace);
 	}
@@ -129,6 +129,7 @@ class Model  implements arrayaccess{
 			$q[] = 'INSERT INTO `';
 		$q[] = $this->name;
 		$q[] = '` (';
+		// var_dump( $e );
 
 		// em caso de inserssões multiplas o bixo pega
 		// entries tem os valores de cada nova entrada
@@ -174,7 +175,7 @@ class Model  implements arrayaccess{
 					$q[] = $this->db->escape($name);
 					$q[] = '`';
 
-					$entries[$entries_count][$name] =& $attr;
+					$entries[$entries_count][$name] = $attr; // tinha um & antes
 					$names[$name] = true;
 
 				}else{
@@ -191,9 +192,17 @@ class Model  implements arrayaccess{
 		}
 		return $r0;
 	}
-
+	
+	// junto a add
+	// valor é adicionado a query por aqui sempre
 	private function add_val( &$q, &$v, &$b, &$c ){
 		if( is_int($b['content']) || is_float($b['content']) ){
+			$q[] = $b['content'];
+		}elseif( isset($b['serialize']) ){
+			$q[] = '\'';
+			$q[] = $this->db->escape(serialize($b['content']));
+			$q[] = '\'';
+		}elseif( isset($b['sql']) ){
 			$q[] = $b['content'];
 		}else{
 			$q[] = '\'';
@@ -451,11 +460,26 @@ class Model  implements arrayaccess{
 		$r = $this->db->_query("SELECT * FROM `$t` WHERE `$id_name` = '$id'");
 		return $r->fetch();
 	}
+	public function remove_where( $w ){
+		// $w =& Decoder::decode_array( $w );
+		// $this->validate_where( $w );
+		$t = $this->name;
+		$q = array("DELETE FROM `$t` WHERE ");
+		$this->_where( $q, $w );
+		return $this->db->_query(implode($q));
+	}
 	public function get_where( $w ){
 		// $w =& Decoder::decode_array( $w );
 		// $this->validate_where( $w );
 		$t = $this->name;
 		$q = array("SELECT * FROM `$t` WHERE ");
+		$this->_where( $q, $w );
+		$r = $this->db->_query(implode($q));
+		return $r->fetch();
+	}
+
+
+	function _where( &$q, &$w ){
 		$count = 0;
 		$or = true;
 		foreach( $w as $c => $v ){
@@ -523,10 +547,11 @@ class Model  implements arrayaccess{
 			}
 			$or = false;
 		}
-		// echo implode($q);
-		$r = $this->db->_query(implode($q));
-		return $r->fetch();
 	}
+
+
+
+
 	
 	// adiciona erro a transacao
 	// ou a ultima (será próxima?) query

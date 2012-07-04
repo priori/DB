@@ -142,26 +142,6 @@ class DB{
 			$this->_has_validation_error = false;
 			
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
 			// se for difserente de rollback, algo estah erradoVV			
 		}else{
 			$this->validation_errors = false;
