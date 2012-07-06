@@ -7,7 +7,7 @@ class Model  implements arrayaccess{
 	private $args;
 	private $alias; // model name
 	private $name; // table scaped name
-	private $id_name = 'id';
+	private $pk = 'id';
 
 	public function Model( &$link, &$name, $args = false ){
 		$this->db =& $link;
@@ -54,12 +54,9 @@ class Model  implements arrayaccess{
 			}
 			$this->sql_value( $q, $v, $attr, $name );
 		}
-		$q[] = ' WHERE ';
 		$b = false;
 		$aux = array();
-		$q[] = '`id` = \'';
-		$q[] = $this->db->escape($id);
-		$q[] = '\'';
+		$this->sql_where_id_eq($id);
 		return $this->db->_query(implode('',$q));
 	}
 	
@@ -259,28 +256,26 @@ class Model  implements arrayaccess{
 	// remove
 	public function remove($id){
 		$t = $this->name;
-		$id = $this->db->escape($id);
-		$id_name &= $this->id_name;
-		if( is_array($id_name) )
-			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
-		return $this->db->_query("DELETE FROM `$t` WHERE `$id_name` = '$id'");
+		$sql = array("DELETE FROM `$t` ");
+		$this->sql_where_id_eq( $sql, $id );
+		$sql = implode('',$sql);
+		return $this->db->_query( $sql );
 	}
 	
    // get
 	public function get($id){
 		$t = $this->name;
-		$id = $this->db->escape($id);
-		$id_name &= $this->id_name;
-		if( is_array($id_name) )
-			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
-		$r = $this->db->_query("SELECT * FROM `$t` WHERE `$id_name` = '$id'");
+		$sql = array("SELECT * FROM `$t` ");
+		$this->sql_where_id_eq( $sql, $id );
+		$sql = implode('',$sql);             
+		$r = $this->db->_query($sql);
 		return $r->fetch();
 	}
 	public function remove_where( $w ){
 		// $w =& Decoder::decode_array( $w );
 		// $this->validate_where( $w );
 		$t = $this->name;
-		$q = array("DELETE FROM `$t` WHERE ");
+		$q = array("DELETE FROM `$t`");
 		$this->_where( $q, $w );
 		return $this->db->_query(implode($q));
 	}
@@ -288,7 +283,7 @@ class Model  implements arrayaccess{
 		// $w =& Decoder::decode_array( $w );
 		// $this->validate_where( $w );
 		$t = $this->name;
-		$q = array("SELECT * FROM `$t` WHERE ");
+		$q = array("SELECT * FROM `$t`");
 		$this->_where( $q, $w );
 		$r = $this->db->_query(implode($q));
 		return $r->fetch();
@@ -393,6 +388,22 @@ class Model  implements arrayaccess{
 		return $day.'-'.$month.'-'.$year;
 		// return eregi_replace('m',''.((int)$month),$format);
 	}
+	private function sql_where_id_eq( &$s, &$id ){
+		if( is_array($this->pk) ){
+			$this->db->fire_error( 'falta implementar...' );
+		}else{
+			if( is_array($id) || is_object($id) || is_resource($id) ){
+				$this->db->fire_error("Valor inválido para id!");
+			}
+			$q[] = ' WHERE ';
+			$q[] = '`';
+			$q[] = $this->pk;
+			$q[] = '` = \'';
+			$q[] = $this->db->escape($id);
+			$q[] = '\'';
+		}
+	}
+
 
 
 
@@ -418,34 +429,47 @@ class Model  implements arrayaccess{
 			return $this->set( $id, $val );
 		}
 	}
-	public function offsetGet($id ){
-		$t = $this->name;
-		$id = $this->db->escape($id);
-		$id_name &= $this->id_name;
-		if( is_array($id_name) )
-			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
-		$r = $this->db->_query("SELECT * FROM `$t` WHERE `$id_name` = '$id'");
-		return $r->fetch();
-	}
 	public function offsetUnset($id){
 		$t = $this->name;
-		$id = $this->db->escape($id);
-		$id_name &= $this->id_name;
-		if( is_array($id_name) )
-			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
-		return $this->db->_query("DELETE FROM `$t` WHERE `$id_name` = '$id'");
+		$sql = array("DELETE FROM `$t` ");
+		$this->sql_where_id_eq( $sql, $id );
+		$sql = implode('',$sql);
+		return $this->db->_query( $sql );
+	}
+	
+   // get
+	public function offsetGet($id){
+		$t = $this->name;
+		$sql = array("SELECT * FROM `$t` ");
+		$this->sql_where_id_eq( $sql, $id );
+		$sql = implode('',$sql);             
+		$r = $this->db->_query($sql);
+		return $r->fetch();
 	}
 	public function offsetExists($id){
 		$t = $this->name;
-		$id = $this->db->escape($id);
-		$id_name &= $this->id_name;
-		if( is_array($id_name) )
+		$pk &= $this->pk;
+		if( is_array($pk) )
 			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
-		$r = $this->db->_query("SELECT 1 FROM `$t` WHERE `$id_name` = '$id'");
+		$sql = array("SELECT 1 FROM `$t` ");
+		$this->db->sql_where_id_eq($sql,$id);
 		return $r->num_rows() > 0;
 	}
 	public function truncate(){
 		$t = $this->name;
 		return $this->db->_query("TRUNCATE `$t`");
+	}
+	public function __set( $a, $b ){
+		if( $a == 'pk' ){
+			if( is_array($b) ){
+				$this->db->fire_error( 'falta implementar...' );
+			}
+			if( !is_string($b) ){
+				$this->db->fire_error('Valor inválido para pk (primary key)!');
+			}
+			$this->pk = $this->db->escape(trim($b));
+		}else{
+			$this->db->fire_error('Atributo '.$a.'não editavel');
+		}
 	}
 }
