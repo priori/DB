@@ -52,7 +52,7 @@ class Model  implements arrayaccess{
 				$this->db->fire_error('Chave sem valor!');
 				return;
 			}
-			$this->add_val( $q, $v, $attr, $name );
+			$this->sql_value( $q, $v, $attr, $name );
 		}
 		$q[] = ' WHERE ';
 		$b = false;
@@ -193,9 +193,9 @@ class Model  implements arrayaccess{
 		return $r0;
 	}
 	
-	// junto a add
-	// valor é adicionado a query por aqui sempre
-	private function add_val( &$q, &$v, &$b, &$c ){
+	// quando não usa aspas
+	// não dá fazer resolver no _value (formata e valida)
+	private function sql_value( &$q, &$v, &$b, &$c ){
 		if( is_int($b['content']) || is_float($b['content']) ){
 			$q[] = $b['content'];
 		}elseif( isset($b['serialize']) ){
@@ -209,7 +209,6 @@ class Model  implements arrayaccess{
 			$q[] = $this->db->escape($b['content']);
 			$q[] = '\'';
 		}
-
 	}
 	
 	private function _values( &$q, &$entries, &$names, &$need_transaction,
@@ -233,7 +232,7 @@ class Model  implements arrayaccess{
 						$this->db->fire_error('Chave sem valor!');
 						return;
 					}                
-					$this->add_val( $q, $v, $attr, $attr );
+					$this->sql_value( $q, $v, $attr, $attr );
 				}else{
 					$q[] = 'DEFAULT';
 				}
@@ -245,104 +244,8 @@ class Model  implements arrayaccess{
 		return $this->db->_query( implode('',$q) );
 	}
 	
-	private function _value( &$attr, &$value ){
-		if( isset($attr['sql']) ){
-			if( is_string($attr['sql']) ){
-				
-				if( is_string($value) ){
-					$value = array( $value );
-				}
-				// se nao for array, error!
-				$sql = $attr['sql']; // & ?
-				foreach( $value as $c => $v ){
-					$value[$c] = '\''.$this->db->escape($v).'\''; 
-				}
-				$sql = strtr($sql,array('%'=>"%%",'?'=>"%s"));
-				$value =& vsprintf($sql,$value);
-				return true;
-			}else{
-				$value =& $value; // & ?
-				return true;
-			}
-			
-		}else if( $value === NULL ){
-			$value = 'NULL';
-			return true;
-
-		}elseif( isset($attr['serialize']) ){
-			$value =& serialize($value);
-
-		}else{
-			// if has many ...
-			// else
-			
-			if( isset($attr['trim']) ){ 
-				$value =& trim($value);
-			}
-			if( isset($attr['upper_case']) || isset($attr['upper']) ){ 
-				$value =& strtoupper($value);
-			}
-			if( isset($attr['lower_case']) || isset($attr['lower']) ){ 
-				$value =& strtolower($value);
-			}
-			
-			$type = false;
-			if( isset($attr['int']) ){
-				$valid = is_int($value) || ((int)$value).'' == ''.$value;
-				$this->add_error($this->get_alias_name($attr),'not_int');
-				$type = true;
-			}
-			if( isset($attr['date']) ){
-				if( $type )error();
-				
-				if( !is_string($attr['date']) )error();
-				
-				$aux = $this->sql_date($value,$attr['date']);
-				if( $aux === false ){
-					$this->add_error($this->get_alias_name($attr),'format_date');
-				}
-				$value =& $aux;
-				
-				$type = true;
-			}
-			if( isset($attr['text']) ){
-				if( $type )error();
-				if( !ereg('^[0-9]+-[0-9]+$',$attr['text']) )
-					die('não é assim que se faz');
-				$text = explode('-',$attr['text']);
-				$b = (int)$text[0];
-				$t = (int)$text[1];
-				if( $b > $t ){
-					die('o maior tem que ser maior que o menor');
-				}
-				if( strlen($value)>$t ){
-					// error
-					$this->add_error($this->get_alias_name($attr),'grande');
-				}
-				if( strlen($value)<$b ){
-					$this->add_error($this->get_alias_name($attr),'pequeno');
-				}
-				$type = true;
-			}
-			if( isset($attr['time']) ){
-				if( $type )error();
-				$type = true;
-			}
-			
-			
-			if( $value === false ){
-				$value = "0";
-				return true;
-			}
-			if( $value === true ){
-				$value = "1";
-				return true;
-			}
-			$value =& $this->db->escape( $value );
-		}
-
-
-		return false;
+	private function value( &$attr, &$value ){
+		include 'value.php';
 	}
 	
 	private $valid_macros = array('date'=>true,'time'=>true,'date_time'=>true,
@@ -350,94 +253,7 @@ class Model  implements arrayaccess{
 		'now'=>true,'format'=>true,'parse'=>true);
 
 	public function build_args( &$args, &$parameters=false ){
-		if( !is_array( $args ) ){
-			$this->db->fire_error("Invalid arguments!");
-		}
-
-		$args = array( $args );
-		$defaults = false;
-		$entries = array();
-              
-		$args_count = 0;
-		$has_more_entries = true;
-
-		while( isset($args[$args_count]) ){
-
-			$count = 0;
-			$e =& $args[$args_count];
-			$values = array();
-			$sqls = array();
-			foreach( $e as $c => $v ){
-				$sql = false;
-				$has_content = false;
-				if( is_string( $c ) ){
-					$aux =& Decoder::decode_string( $c );
-					$has_content = true;
-					// if valid macros combination (attrs, model)
-					$sql = $this->_value($aux,$v);
-
-				// haverá esse caso mesmo?
-				}elseif( $c === $count && is_string($v) ){ 
-					// if tiver parameters
-					// usa o valor do parameter
-					// else
-					$this->db->fire_error("Invalid arguments! ".
-						"Os valores no Array devem ter chave String.");
-					// um dia posso dar suporte a isto, para setagem de opções
-					// now será uma exessão
-					$count++;
-					$aux = Decoder::decode_string( $v );
-
-				// Array de Array
-				}else if( $c===$count && $args_count == 0 && is_array($v) ){
-					$args[] =& $e[$c]; 
-					unset( $e[$c] );
-					continue;
-					
-				// Chave não string e valor de tipo não array ou array de array de array
-				}else{
-					$this->db->fire_error("Invalid arguments!");
-				} 
-
-				if( isset($aux[0]) ){
-					$name =& $aux[0];
-					unset( $aux[0] );
-					// if( has_value )
-					//		$values[$name] = $this->value($v,$aux);
-					if( isset( $values[$name] ) ){
-						$this->db->fire_error("Invalid arguments! ".
-								"Tentativa de setar o mesmo campo mais de uma vez.");
-						// campo, atributo ou coluna? qual o melhor nome?
-					}
-					$values[$name] = $v;
-					if( $sql ){
-						$sqls[$name] = true;
-					}
-
-				}else{ // que merda é essa?
-					// como você chegou aqui?
-					die("Por enquanto não tem como chegar aqui");
-					// $values[] = $aux;
-				}
-				// valida, gera valores, diz se é sql ou precisa escapar e aspas
-			}
-			if( count($sqls) > 0 ){
-				$values[] = $sqls;
-			}
-			if( $args_count == 0 && count($args) > 1 ){
-				$defaults =& $values;
-				unset( $values );
-			}else{
-				$entries[] =& $values;
-			}
-			$args_count++;
-		}
-
-		$r = array(
-			'entries' =>& $entries,
-			'defaults' =>& $defaults
-		);
-		return $r;
+		include 'build_args.php';
 	}
 
 	// remove
@@ -479,74 +295,8 @@ class Model  implements arrayaccess{
 	}
 
 
-	function _where( &$q, &$w ){
-		$count = 0;
-		$or = true;
-		foreach( $w as $c => $v ){
-			if( $c === $count ){
-				if( $v === 'or' || $v === 'OR' ){
-					$q[] = " OR ";
-				}else{
-					$o = htmlspecialchars($v);
-					$this->db->fire_error("Operador desconhecido: <strong>$o</strong>");
-				}
-				$count++;
-				$or = true;
-				continue;
-			}else{
-				if( !$or ){
-					$q[] = ' AND `';
-				}else{
-					$q[] = '`';
-				}
-				$c = Decoder::decode_string($c);
-				$q[] = $this->db->escape($c[0]);
-				// verificar mais de um dentre gt, lt, ge, le, in
-				// verificar se tem alguma macro errada
-				if( isset($c['gt']) )
-					$q[] = '` > ';
-				elseif( isset($c['lt']) )
-					$q[] = '` < ';
-				elseif( isset($c['ge']) )
-					$q[] = '` >= ';
-				elseif( isset($c['le']) )
-					$q[] = '` <= ';
-				elseif( isset($c['in']) )
-					$q[] = '` in ';
-				else
-					$q[] = '` = ';
-				if( isset($c['sql']) ){
-					$q[] = '(';
-					$q[] = $v;
-					$q[] = ')';
-				}else{
-					// fazer data funcionar e verificacoes
-					if( is_array($v) && isset($c['in']) ){
-						// verificar se o array está normal
-						$b = false;
-						$q[] = '(';
-						foreach( $v as $c2 => $v2 ){
-							if( $b ){
-								$q[] = ', \'';
-							}else{
-								$q[] = '\'';
-							}
-							$q[] = $this->db->escape($v2);
-							$q[] = '\'';
-							$b = true;
-						}
-						$q[] = ')';
-					}else{
-						// verficar se v está normal
-						$q[] = '\'';
-						$q[] = $this->db->escape($v);
-						$q[] = '\'';
-					}
-				}
-				// falta outras macros
-			}
-			$or = false;
-		}
+	function sql_where( &$q, &$w ){
+		include 'sql_where.php';
 	}
 
 
@@ -586,8 +336,10 @@ class Model  implements arrayaccess{
 	
 	private function sql_date($d,$format){
 		$f = strtr($format,array( 
-			'dd' => '([0-9][0-9])','mm' => '([0-9][0-9])','yyyy' => '([0-9][0-9][0-9][0-9])',
-			'd' => '([0-9][0-9]?)','m' => '([0-9][0-9]?)','yy' => '([0-9][0-9])',
+			'dd' => '([0-9][0-9])','mm' => '([0-9][0-9])',
+			'yyyy' => '([0-9][0-9][0-9][0-9])',
+			'd' => '([0-9][0-9]?)','m' => '([0-9][0-9]?)',
+			'yy' => '([0-9][0-9])',
 			'(' => '\\(', '/' => '\\/' , ')' => '\\)' // falta muito o que validar
 		));
 		$r;
