@@ -1,6 +1,5 @@
 <?php 
 
-
 class Model  implements arrayaccess{
 	
 	private $db;
@@ -56,7 +55,7 @@ class Model  implements arrayaccess{
 		}
 		$b = false;
 		$aux = array();
-		$this->sql_where_id_eq($id);
+		$this->sql_where_id_eq($q, $id);
 		return $this->db->_query(implode('',$q));
 	}
 	
@@ -76,44 +75,53 @@ class Model  implements arrayaccess{
 	private $macro_alias = array('num'=>'numeric','int'=>'integer');
 	private $macro_optional_params = array('date'=>true,'text'=>true,'sql'=>true); // numeric(size)
 	private $macro_required_params = array('format'=>true);
-	private function validate( &$e, &$vals, $tipo ){
+	private function validate( &$es, &$vals, $tipo ){
 		// nao vamos pensar em vals por enquanto 
 		$r = true;
 		$msg = array();
-		foreach( $e as $macro => $params ){
-			if( !isset($this->macros[$macro]) ){
-				$msg[] = 'Invalid macro "';
-				$msg[] = $macro;
-				$msg[] = '"! ';
-				if( isset($this->macros[strtolower($macro)]) ){
-					$msg[] = 'Use lower case in macros. ';
-				}elseif( isset($this->macros[trim($macro)]) ){
-					$msg[] = 'Be aware of white spaces in macros. ';
-				}elseif( isset($this->macros[trim(strtolower($macro))]) ){
-					$msg[] = 'Use lower case and no white spaces in macros. ';
-				} 
-				continue;
+		$ok = true;
+		foreach( $es as $k => $e ){
+			foreach( $e as $macro => $params ){
+				if( !isset($this->macros[$macro]) ){
+					$msg[] = 'Invalid macro "';
+					$msg[] = $macro;
+					$msg[] = '"! ';
+					if( isset($this->macros[strtolower($macro)]) ){
+						$msg[] = 'Use lower case in macros. ';
+					}elseif( isset($this->macros[trim($macro)]) ){
+						$msg[] = 'Be aware of white spaces in macros. ';
+					}elseif( isset($this->macros[trim(strtolower($macro))]) ){
+						$msg[] = 'Use lower case and no white spaces in macros. ';
+					} 
+					continue;
+					$ok = false;
+				}
+				if( isset($this->macro_alias[$macro]) && isset($e[$this->macro_alias[$macro]]) ){
+					$msg[] = 'Redundancy! Dont use "';
+					$msg[] = $macro;
+					$msg[] = '" with "';
+					$msg[] = $this->macro_alias[$macro];
+					$msg[] = '"! ';
+					$ok = false;
+				}
+				if( isset($this->macro_required_params[$macro]) && false ){
+					$msg[] = 'Macro "';
+					$msg[] = $macro;
+					$msg[] = '" needs parameters! ';
+					$ok = false;
+				}
 			}
-			if( isset($this->macro_alias[$macro]) && isset($e[$this->macro_alias[$macro]]) ){
-				$msg[] = 'Redundancy! Dont use "';
-				$msg[] = $macro;
-				$msg[] = '" with "';
-				$msg[] = $this->macro_alias[$macro];
-				$msg[] = '"! ';
-			}
-			if( isset($this->macro_required_params[$macro]) && false ){
-				$msg[] = 'Macro "';
-				$msg[] = $macro;
-				$msg[] = '" needs parameters! ';
+			if( $ok ){
+				$this->value( $e, $es[$k]['content'] );
 			}
 		}
-		return true;
+		return $ok;
 	}
 	public function _add(&$e,$replace=false){
 		$e = Decoder::decode_array( $e );
 		$vals = false;
 		if( !$this->validate($e,$vals,'add') ){ // e o replace?
-			// return;
+			return;
 		}
 		return $this->__add($e,$replace);
 	}
@@ -126,7 +134,6 @@ class Model  implements arrayaccess{
 			$q[] = 'INSERT INTO `';
 		$q[] = $this->name;
 		$q[] = '` (';
-		// var_dump( $e );
 
 		// em caso de inserssões multiplas o bixo pega
 		// entries tem os valores de cada nova entrada
@@ -385,7 +392,7 @@ class Model  implements arrayaccess{
 		}
 		if( $year === false || $month === false || $day === false )
 			return error(); // isso não é erro comum
-		return $day.'-'.$month.'-'.$year;
+		return $year.'-'.$month.'-'.$day;
 		// return eregi_replace('m',''.((int)$month),$format);
 	}
 	private function sql_where_id_eq( &$s, &$id ){
@@ -403,21 +410,6 @@ class Model  implements arrayaccess{
 			$q[] = '\'';
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -452,7 +444,9 @@ class Model  implements arrayaccess{
 		if( is_array($pk) )
 			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
 		$sql = array("SELECT 1 FROM `$t` ");
-		$this->db->sql_where_id_eq($sql,$id);
+		$this->sql_where_id_eq($sql,$id);
+		$sql = implode('',$sql);             
+		$r = $this->db->_query($sql);
 		return $r->num_rows() > 0;
 	}
 	public function truncate(){

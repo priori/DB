@@ -1,43 +1,60 @@
 <?php
 
-if( isset($attr['sql']) ){
+
+
+if( isset($attr['sql'])  ){
 	if( is_string($attr['sql']) ){
 		
 		if( is_string($value) ){
 			$value = array( $value );
 		}
+		$numeric = false;
+		if( is_numeric($value) ){
+			$value = array( $value );
+			$numeric = true;
+		}
 		// se nao for array, error!
+		if( !is_array( $value) ){
+			error();
+		}
 		$sql = $attr['sql']; // & ?
-		foreach( $value as $c => $v ){
-			$value[$c] = '\''.$this->db->escape($v).'\''; 
+		if( $numeric ){
+			foreach( $value as $c => $v ){
+				$value[$c] = $v; 
+			}
+		}else{
+			foreach( $value as $c => $v ){
+				$value[$c] = '\''.$this->db->escape($v).'\''; 
+			}
 		}
 		$sql = strtr($sql,array('%'=>"%%",'?'=>"%s"));
-		$value =& vsprintf($sql,$value);
+		$value = vsprintf($sql,$value);
 		return true;
 	}else{
-		$value =& $value; // & ?
+		$value = $value; // & ?
 		return true;
 	}
 	
 }else if( $value === NULL ){
 	$value = 'NULL';
+	$attr['sql'] = true;
 	return true;
 
 }elseif( isset($attr['serialize']) ){
-	$value =& serialize($value);
+	$value = serialize($value);
 
 }else{
 	// if has many ...
 	// else
 	
 	if( isset($attr['trim']) ){ 
-		$value =& trim($value);
+		$value = trim($value);
 	}
 	if( isset($attr['upper_case']) || isset($attr['upper']) ){ 
-		$value =& strtoupper($value);
+		$value = strtoupper($value);
 	}
 	if( isset($attr['lower_case']) || isset($attr['lower']) ){ 
-		$value =& strtolower($value);
+		$value = strtolower($value);
 	}
 	
 	$type = false;
@@ -48,14 +65,14 @@ if( isset($attr['sql']) ){
 	}
 	if( isset($attr['date']) ){
 		if( $type )error();
-		
 		if( !is_string($attr['date']) )error();
 		
 		$aux = $this->sql_date($value,$attr['date']);
 		if( $aux === false ){
 			$this->add_error($this->get_alias_name($attr),'format_date');
 		}
-		$value =& $aux;
+		$value = $aux;
+
 		
 		$type = true;
 	}
@@ -92,6 +109,6 @@ if( isset($attr['sql']) ){
 		$value = "1";
 		return true;
 	}
-	$value =& $this->db->escape( $value );
+	$value = $this->db->escape( $value );
 }
 return false;
