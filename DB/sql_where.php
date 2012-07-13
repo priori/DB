@@ -1,8 +1,9 @@
 <?php
+
 $count = 0;
 $or = true;
-if( count( $w ){
-	$sql[] = 'WHERE ';
+if( count( $w ) ){
+	$q[] = 'WHERE ';
 }
 foreach( $w as $c => $v ){
 	if( $c === $count ){
