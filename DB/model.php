@@ -283,7 +283,7 @@ class Model  implements arrayaccess{
 		// $this->validate_where( $w );
 		$t = $this->name;
 		$q = array("DELETE FROM `$t`");
-		$this->_where( $q, $w );
+		$this->sql_where( $q, $w );
 		return $this->db->_query(implode($q));
 	}
 	public function get_where( $w ){
@@ -291,7 +291,7 @@ class Model  implements arrayaccess{
 		// $this->validate_where( $w );
 		$t = $this->name;
 		$q = array("SELECT * FROM `$t`");
-		$this->_where( $q, $w );
+		$this->sql_where( $q, $w );
 		$r = $this->db->_query(implode($q));
 		return $r->fetch();
 	}
