@@ -111,7 +111,7 @@ class Model  implements arrayaccess{
 					$ok = false;
 				}
 			}
-			if( $ok ){
+			if( $ok and !isset($es[$k]['content']) ){
 				$this->value( $e, $es[$k]['content'] );
 			}
 		}
