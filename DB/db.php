@@ -1,5 +1,9 @@
 <?php
 
+require_once dirname(__FILE__).'/db_result.php';
+require_once dirname(__FILE__).'/decoder.php';
+require_once dirname(__FILE__).'/error.php';
+require_once dirname(__FILE__).'/model.php';
 
 class DB{
 

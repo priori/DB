@@ -395,7 +395,7 @@ class Model  implements arrayaccess{
 		return $year.'-'.$month.'-'.$day;
 		// return eregi_replace('m',''.((int)$month),$format);
 	}
-	private function sql_where_id_eq( &$s, &$id ){
+	private function sql_where_id_eq( &$q, &$id ){
 		if( is_array($this->pk) ){
 			$this->db->fire_error( 'falta implementar...' );
 		}else{

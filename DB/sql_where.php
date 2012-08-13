@@ -70,3 +70,4 @@ foreach( $w as $c => $v ){
 	}
 	$or = false;
 }
+var_dump( $q );
