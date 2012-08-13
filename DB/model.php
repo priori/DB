@@ -7,16 +7,32 @@ class Model  implements arrayaccess{
 	private $alias; // model name
 	private $name; // table scaped name
 	private $pk = 'id';
+	private $mode;
+	private $a;
+	private $b;
+	private $schema;
 
-	public function Model( &$link, &$name, $args = false ){
+	public function Model( &$link, &$name, $args = false, $mode = 0, $schema = false ){
+		$this->mode = $mode;
 		$this->db =& $link;
 		$this->alias =& $name;
+		$this->schema =& $schema;
 		$this->name = $link->escape( $name ); // only variable should be assigned by reference
 		$this->args =& $args;
+		if( $mode === DB::POSTGRESQL ){
+			$this->a = '"';
+			$this->b = '"';
+		}else{
+			$this->a = '`';
+			$this->b = '`';
+		}
 	}
 	
 	public function __toString(){
-		return '`'.$this->name.'`';
+		if( $this->schema )
+			return $this->a.$this->schema.$this->b.'.'.$this->a.$this->name.$this->b;
+		else
+			return $this->a.$this->name.$this->b;
 	}
 
 	// set, update
@@ -31,9 +47,17 @@ class Model  implements arrayaccess{
 	public function _set(&$id, &$attrs){
 		$n = array();
 		$q = array();
-		$q[] = 'UPDATE `';
+		$q[] = 'UPDATE ';
+		$q[] = $this->a;
+		if( $this->schema ){
+			$q[] = $this->schema;
+			$q[] = $this->b;
+			$q[] = '.';
+			$q[] = $this->a;
+		}
 		$q[] = $this->name;
-		$q[] = '` SET ';
+		$q[] = $this->b;
+		$q[] = 'SET ';
 		$b = false;
 		foreach( $attrs as $name => $attr ){
 			$v;
@@ -42,9 +66,10 @@ class Model  implements arrayaccess{
 			}else{
 				$b = true;
 			}
-			$q[] = '`';
+			$q[] = $this->a;
 			$q[] = $this->db->escape($name);
-			$q[] = '` = ';
+			$q[] = $this->b;
+			$q[] = ' = ';
 			if( isset($attr['content']) ){ // ponteiro
 				$v = $attr['content'];
 			}else{
@@ -129,11 +154,19 @@ class Model  implements arrayaccess{
 	public function __add(&$e,$replace=false,$multiple_insertions=false){
 		$q = array();
 		if( $replace===true )
-			$q[] = 'REPLACE INTO `';
+			$q[] = 'REPLACE INTO ';
 		else
-			$q[] = 'INSERT INTO `';
+			$q[] = 'INSERT INTO ';
+		$q[] = $this->a;
+		if( $this->schema ){
+			$q[] = $this->schema;
+			$q[] = $this->b;
+			$q[] = '.';
+			$q[] = $this->a;
+		}
 		$q[] = $this->name;
-		$q[] = '` (';
+		$q[] = $this->b;
+		$q[] = ' (';
 
 		// em caso de inserssões multiplas o bixo pega
 		// entries tem os valores de cada nova entrada
@@ -175,9 +208,9 @@ class Model  implements arrayaccess{
 						$q[] = ', ';
 					else
 						$b = true;
-					$q[] = '`';
+					$q[] = $this->a;
 					$q[] = $this->db->escape($name);
-					$q[] = '`';
+					$q[] = $this->b;
 
 					$entries[$entries_count][$name] = $attr; // tinha um & antes
 					$names[$name] = true;
@@ -209,9 +242,14 @@ class Model  implements arrayaccess{
 		}elseif( isset($b['sql']) ){
 			$q[] = $b['content'];
 		}else{
-			$q[] = '\'';
-			$q[] = $this->db->escape($b['content']);
-			$q[] = '\'';
+			$c =& $b['content'];
+			if( is_int($c) or is_float($c) ){
+				$q[] = $c;
+			}else{
+				$q[] = '\'';
+				$q[] = $this->db->escape($c);
+				$q[] = '\'';
+			}
 		}
 	}
 	
@@ -262,7 +300,7 @@ class Model  implements arrayaccess{
 
 	// remove
 	public function remove($id){
-		$t = $this->name;
+		$t = $this->__toString();
 		$sql = array("DELETE FROM `$t` ");
 		$this->sql_where_id_eq( $sql, $id );
 		$sql = implode('',$sql);
@@ -271,8 +309,8 @@ class Model  implements arrayaccess{
 	
    // get
 	public function get($id){
-		$t = $this->name;
-		$sql = array("SELECT * FROM `$t` ");
+		$t = $this->__toString();
+		$sql = array("SELECT * FROM $t ");
 		$this->sql_where_id_eq( $sql, $id );
 		$sql = implode('',$sql);             
 		$r = $this->db->_query($sql);
@@ -281,16 +319,16 @@ class Model  implements arrayaccess{
 	public function remove_where( $w ){
 		// $w =& Decoder::decode_array( $w );
 		// $this->validate_where( $w );
-		$t = $this->name;
-		$q = array("DELETE FROM `$t`");
+		$t = $this->__toString();
+		$q = array("DELETE FROM $t");
 		$this->sql_where( $q, $w );
 		return $this->db->_query(implode($q));
 	}
 	public function get_where( $w ){
 		// $w =& Decoder::decode_array( $w );
 		// $this->validate_where( $w );
-		$t = $this->name;
-		$q = array("SELECT * FROM `$t`");
+		$t = $this->__toString();
+		$q = array("SELECT * FROM $t");
 		$this->sql_where( $q, $w );
 		$r = $this->db->_query(implode($q));
 		return $r->fetch();
@@ -308,7 +346,10 @@ class Model  implements arrayaccess{
 	// adiciona erro a transacao
 	// ou a ultima (será próxima?) query
 	private function add_error( $field, $arg ){
-		$this->db->_add_error($this->name,$field,$arg);
+		if( $this->schema ){
+			$this->db->_add_error($this->schema.'.'.$this->name,$field,$arg);
+		}else
+			$this->db->_add_error($this->name,$field,$arg);
 	}
 	
 
@@ -403,9 +444,10 @@ class Model  implements arrayaccess{
 				$this->db->fire_error("Valor inválido para id!");
 			}
 			$q[] = ' WHERE ';
-			$q[] = '`';
+			$q[] = $this->a;
 			$q[] = $this->pk;
-			$q[] = '` = \'';
+			$q[] = $this->b;
+			$q[] = ' = \'';
 			$q[] = $this->db->escape($id);
 			$q[] = '\'';
 		}
@@ -422,8 +464,8 @@ class Model  implements arrayaccess{
 		}
 	}
 	public function offsetUnset($id){
-		$t = $this->name;
-		$sql = array("DELETE FROM `$t` ");
+		$t = $this->__toString();
+		$sql = array("DELETE FROM $t ");
 		$this->sql_where_id_eq( $sql, $id );
 		$sql = implode('',$sql);
 		return $this->db->_query( $sql );
@@ -431,27 +473,27 @@ class Model  implements arrayaccess{
 	
    // get
 	public function offsetGet($id){
-		$t = $this->name;
-		$sql = array("SELECT * FROM `$t` ");
+		$t = $this->__toString();
+		$sql = array("SELECT * FROM $t ");
 		$this->sql_where_id_eq( $sql, $id );
 		$sql = implode('',$sql);             
 		$r = $this->db->_query($sql);
 		return $r->fetch();
 	}
 	public function offsetExists($id){
-		$t = $this->name;
+		$t = $this->__toString();
 		$pk &= $this->pk;
 		if( is_array($pk) )
 			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
-		$sql = array("SELECT 1 FROM `$t` ");
+		$sql = array("SELECT 1 FROM $t ");
 		$this->sql_where_id_eq($sql,$id);
 		$sql = implode('',$sql);             
 		$r = $this->db->_query($sql);
 		return $r->num_rows() > 0;
 	}
 	public function truncate(){
-		$t = $this->name;
-		return $this->db->_query("TRUNCATE `$t`");
+		$t = $this->__toString();
+		return $this->db->_query("TRUNCATE $t");
 	}
 	public function __set( $a, $b ){
 		if( $a == 'pk' ){
@@ -463,7 +505,7 @@ class Model  implements arrayaccess{
 			}
 			$this->pk = $this->db->escape(trim($b));
 		}else{
-			$this->db->fire_error('Atributo '.$a.'não editavel');
+			$this->db->fire_error('Atributo '.$a.' não editavel');
 		}
 	}
 }

@@ -5,29 +5,40 @@ class DB_Result implements Countable, Iterator{
 
 	private $db_r;
 	private $r;
-	public function DB_Result( &$r, &$db_r  ){
+	private $mode;
+	public function DB_Result( &$r, &$db_r, $mode ){
+		$this->mode = $mode;
 		$this->db_r =& $db_r;
 		$this->r =& $r;
 	}
 	public function num_rows(){
-		if( class_exists('mysqli') ){
+		if( $this->mode === DB::MYSQLI ){
 			return $this->r->num_rows;
+		}elseif( $this->mode === DB::MYSQL ){
+			return mysql_num_rows($this->r);
+		}elseif( $this->mode === DB::POSTGRESQL ){
+			return pg_num_rows($this->r);
 		}
-		return mysql_num_rows($this->r);
 	}
 	public function fetch(){
-		if( class_exists('mysqli') )
+		if( $this->mode === DB::MYSQLI ){
 			return $this->r->fetch_assoc();
-		return mysql_fetch_assoc($this->r);
+		}elseif( $this->mode === DB::MYSQL ){
+			return mysql_fetch_assoc($this->r);
+		}elseif( $this->mode === DB::POSTGRESQL ){
+			return pg_fetch_assoc( $this->r );
+		}
 	}
 	public function count(){
 		return $this->num_rows();
 	}
 	public function data_seek($c){
-		if( class_exists('mysqli') ){
+		if( $this->mode === DB::MYSQLI ){
 			$this->r->data_seek($c);
-		}else{
+		}elseif( $this->mode === DB::MYSQL ){
 			mysql_data_seek($this->r,$c);
+		}elseif( $this->mode === DB::POSTGRESQL ){
+			pg_result_seek($this->r,$c);
 		}
 	}
 	

@@ -262,7 +262,7 @@ class DB{
 			return $this->link->real_escape_string($s);
 		}elseif( $this->mode === DB::MYSQL ){
 			return mysql_real_escape_string($s,$this->link);
-		}elseif( $this->mode === DB::MYSQL ){
+		}elseif( $this->mode === DB::POSTGRESQL ){
 			if( is_int($s) || is_float($s) ){
 				return $s;
 			}else{
@@ -281,8 +281,15 @@ class DB{
 
 	private $models = array();
 	public function __get($n){
-		if( !isset($this->models[$n]) )
-			$this->models[$n] = new Model($this,$n);
+		if( $this->mode == DB::POSTGRESQL ){
+			if( !isset($this->models[$n]) ){
+				$this->models[$n] = new Schema($this,$n,null,$this->mode);
+			}
+		}else{
+			if( !isset($this->models[$n]) ){
+				$this->models[$n] = new Model($this,$n,null,$this->mode);
+			}
+		}
 		return $this->models[$n];
 	}
 
