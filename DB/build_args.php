@@ -25,7 +25,7 @@ while( isset($args[$args_count]) ){
 			$sql = $this->value($aux,$v);
 
 		// haverá esse caso mesmo?
-		}elseif( $c === $count && is_string($v) ){ 
+		}elseif( $c === $count and is_string($v) ){ 
 			// if tiver parameters
 			// usa o valor do parameter
 			// else
@@ -37,7 +37,7 @@ while( isset($args[$args_count]) ){
 			$aux = Decoder::decode_string( $v );
 
 		// Array de Array
-		}else if( $c===$count && $args_count == 0 && is_array($v) ){
+		}else if( $c===$count and $args_count == 0 and is_array($v) ){
 			$args[] =& $e[$c]; 
 			unset( $e[$c] );
 			continue;
@@ -72,7 +72,7 @@ while( isset($args[$args_count]) ){
 	if( count($sqls) > 0 ){
 		$values[] = $sqls;
 	}
-	if( $args_count == 0 && count($args) > 1 ){
+	if( $args_count == 0 and count($args) > 1 ){
 		$defaults =& $values;
 		unset( $values );
 	}else{

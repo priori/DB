@@ -38,7 +38,7 @@ class Model  implements arrayaccess{
 	// set, update
 	public function set( $id, $args ){
 		$args = Decoder::decode_array( $args );
-		if( is_array($id) || is_object($id) ){
+		if( is_array($id) or is_object($id) ){
 			// para evitar xss
 			$this->db->fire_error("Invalid arguments. Id can't be a array/object.");
 		}
@@ -121,7 +121,7 @@ class Model  implements arrayaccess{
 					continue;
 					$ok = false;
 				}
-				if( isset($this->macros_alias[$macro]) && isset($e[$this->macros_alias[$macro]]) ){
+				if( isset($this->macros_alias[$macro]) and isset($e[$this->macros_alias[$macro]]) ){
 					$msg[] = 'Redundancy! Dont use "';
 					$msg[] = $macro;
 					$msg[] = '" with "';
@@ -129,7 +129,7 @@ class Model  implements arrayaccess{
 					$msg[] = '"! ';
 					$ok = false;
 				}
-				if( isset($this->macros_required_params[$macro]) && false ){
+				if( isset($this->macros_required_params[$macro]) and false ){
 					$msg[] = 'Macro "';
 					$msg[] = $macro;
 					$msg[] = '" needs parameters! ';
@@ -233,7 +233,7 @@ class Model  implements arrayaccess{
 	// quando não usa aspas
 	// não dá fazer resolver no _value (formata e valida)
 	private function sql_value( &$q, &$v, &$b, &$c ){
-		if( is_int($b['content']) || is_float($b['content']) ){
+		if( is_int($b['content']) or is_float($b['content']) ){
 			$q[] = $b['content'];
 		}elseif( isset($b['serialize']) ){
 			$q[] = '\'';
@@ -402,14 +402,14 @@ class Model  implements arrayaccess{
 			if( strlen($v)==1 ){
 				$v = '0'.$v;
 			}
-			if( $r2[$c] == 'm' || $r2[$c] == 'mm' ){
-				if( $month !== false && $month != $v ){
+			if( $r2[$c] == 'm' or $r2[$c] == 'mm' ){
+				if( $month !== false and $month != $v ){
 					return false;
 				}
 				$month = $v;
 			}
-			if( $r2[$c] == 'd' || $r2[$c] == 'dd' ){
-				if( $day !== false && $day != $v ){
+			if( $r2[$c] == 'd' or $r2[$c] == 'dd' ){
+				if( $day !== false and $day != $v ){
 					return false;
 				}
 				$day = $v;
@@ -424,14 +424,14 @@ class Model  implements arrayaccess{
 					 }
 				}
 			}
-			if( $r2[$c] == 'yy' || $r2[$c] == 'yyyy' ){
-				if( $year !== false && $year != $v ){
+			if( $r2[$c] == 'yy' or $r2[$c] == 'yyyy' ){
+				if( $year !== false and $year != $v ){
 					return false;
 				}
 				$year = $v;
 			}
 		}
-		if( $year === false || $month === false || $day === false )
+		if( $year === false or $month === false or $day === false )
 			return error(); // isso não é erro comum
 		return $year.'-'.$month.'-'.$day;
 		// return eregi_replace('m',''.((int)$month),$format);
@@ -440,7 +440,7 @@ class Model  implements arrayaccess{
 		if( is_array($this->pk) ){
 			$this->db->fire_error( 'falta implementar...' );
 		}else{
-			if( is_array($id) || is_object($id) || is_resource($id) ){
+			if( is_array($id) or is_object($id) or is_resource($id) ){
 				$this->db->fire_error("Valor inválido para id!");
 			}
 			$q[] = ' WHERE ';

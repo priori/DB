@@ -7,7 +7,7 @@ if( count( $w ) ){
 }
 foreach( $w as $c => $v ){
 	if( $c === $count ){
-		if( $v === 'or' || $v === 'OR' ){
+		if( $v === 'or' or $v === 'OR' ){
 			$q[] = " OR ";
 		}else{
 			$o = htmlspecialchars($v);
@@ -44,7 +44,7 @@ foreach( $w as $c => $v ){
 			$q[] = ')';
 		}else{
 			// fazer data funcionar e verificacoes
-			if( is_array($v) && isset($c['in']) ){
+			if( is_array($v) and isset($c['in']) ){
 				// verificar se o array está normal
 				$b = false;
 				$q[] = '(';

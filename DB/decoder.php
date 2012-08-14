@@ -21,7 +21,7 @@ class Decoder{
 				}
 				$mats[$attr_name] =& $content;
 				$attr_name = false;
-			}elseif( $ant == ')' && strlen($content) ){
+			}elseif( $ant == ')' and strlen($content) ){
 				return false;
 			}
 		}
@@ -43,7 +43,7 @@ class Decoder{
 		foreach( $ms as $m ){
 			$ch = $m[0];
 			$c = $m[1];
-			if( $ch == ':' && !$parentesis_count ){
+			if( $ch == ':' and !$parentesis_count ){
 				if( $c > 0 ){
 					$r = Decoder::mmacthed($matches, $ant, $attr_name, 
 							substr($text, $last, $c-$last));
@@ -82,7 +82,7 @@ class Decoder{
 			}
 		}
 		$ch = $text{$len-1};
-		if( $ch == ':' || $ch == '(' || $parentesis_count ){
+		if( $ch == ':' or $ch == '(' or $parentesis_count ){
 			return false;
 		}
 		if( $ch != ')' ){
@@ -114,7 +114,7 @@ class Decoder{
 				}
 				$aux['content'] = $v;
 
-			}elseif( $c === $count && is_string($v) ){
+			}elseif( $c === $count and is_string($v) ){
 				$count++;
 				$aux = Decoder::decode_string( $v );
 			}else{

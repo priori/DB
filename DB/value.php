@@ -50,16 +50,16 @@ if( isset($attr['sql'])  ){
 	if( isset($attr['trim']) ){ 
 		$value = trim($value);
 	}
-	if( isset($attr['upper_case']) || isset($attr['upper']) ){ 
+	if( isset($attr['upper_case']) or isset($attr['upper']) ){ 
 		$value = strtoupper($value);
 	}
-	if( isset($attr['lower_case']) || isset($attr['lower']) ){ 
+	if( isset($attr['lower_case']) or isset($attr['lower']) ){ 
 		$value = strtolower($value);
 	}
 	
 	$type = false;
 	if( isset($attr['int']) ){
-		$valid = is_int($value) || ((int)$value).'' == ''.$value;
+		$valid = is_int($value) or ((int)$value).'' == ''.$value;
 		$this->add_error($this->get_alias_name($attr),'not_int');
 		$type = true;
 	}
