@@ -72,9 +72,9 @@ class Model  implements arrayaccess{
 	private $macros = array('sql'=>true,'now'=>true,'date'=>true,'int'=>true,'text'=>true,
 		'format'=>true,'num'=>true,'numeric'=>true,'integer'=>true, 'serialize'=>true ); 
 	// microtime, date_time, required, length_gt, length_lt, gt, lt
-	private $macro_alias = array('num'=>'numeric','int'=>'integer');
-	private $macro_optional_params = array('date'=>true,'text'=>true,'sql'=>true); // numeric(size)
-	private $macro_required_params = array('format'=>true);
+	private $macros_alias = array('num'=>'numeric','int'=>'integer');
+	private $macros_optional_params = array('date'=>true,'text'=>true,'sql'=>true); // numeric(size)
+	private $macros_required_params = array('format'=>true);
 	private function validate( &$es, &$vals, $tipo ){
 		// nao vamos pensar em vals por enquanto 
 		$r = true;
@@ -96,15 +96,15 @@ class Model  implements arrayaccess{
 					continue;
 					$ok = false;
 				}
-				if( isset($this->macro_alias[$macro]) && isset($e[$this->macro_alias[$macro]]) ){
+				if( isset($this->macros_alias[$macro]) && isset($e[$this->macros_alias[$macro]]) ){
 					$msg[] = 'Redundancy! Dont use "';
 					$msg[] = $macro;
 					$msg[] = '" with "';
-					$msg[] = $this->macro_alias[$macro];
+					$msg[] = $this->macros_alias[$macro];
 					$msg[] = '"! ';
 					$ok = false;
 				}
-				if( isset($this->macro_required_params[$macro]) && false ){
+				if( isset($this->macros_required_params[$macro]) && false ){
 					$msg[] = 'Macro "';
 					$msg[] = $macro;
 					$msg[] = '" needs parameters! ';
