@@ -1,6 +1,6 @@
 <?php 
 
-class Model  implements arrayaccess{
+class Model implements arrayaccess{
 	
 	private $db;
 	private $args;
