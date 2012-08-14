@@ -105,7 +105,13 @@ $db = new DB;</code></pre></div>
 	<li>DB->insert_id()
 </ul></div>
 <p>Pega o id inserido na última consulta. Somente para MySQL. Não funciona com PostgreSQL.</p>
-<div class="item" style=""><pre><code class="php">$id = $db->inset_id();</code></pre></div>
+<div class="item" style="margin-right:10px"><pre><code class="php">$id = $db->inset_id();
+$sql = "INSERT INTO t(c, c2, t2_id) 
+        VALUES( 1, 2, $id )";</code></pre></div>
+<div class="item" style=""><pre><code class="php">// cuidado para não cometer este erro
+$id = $db->inset_id;
+// $id está com o modelo (tabela) "insert_id"
+</code></pre></div>
 
 
 
@@ -156,14 +162,12 @@ Na transação simples qualquer erro resulta em rollback. Para fechar uma transa
 
 
 <hr>
-<h3 style=clear:both>DB->begin<a id=db-begin></a></h3>
+<h3 style=clear:both>DB->rollback<a id=db-rollback></a></h3>
 <div class=interface><ul>
-	<li>DB->begin( $b )
+	<li>DB->rollback( $b )
 </ul></div>
-<p>Inicia uma transação. Se <b>true</b> é passado como parametro inicia-se a transação simples.
-Na transação simples qualquer erro resulta em rollback. Para fechar uma transação simplês use
-<b>end</b>.</p>
-<div class="item" style=""><pre><code class="php">$db->begin();</code></pre></div>
+<p>Dá um <b>ROLLBACK</b>.</p>
+<div class="item" style=""><pre><code class="php">$db->rollback();</code></pre></div>
 
 
 
@@ -315,7 +319,7 @@ echo $a[1]['col1'];</code></pre></div>
 	<li><a href="#db-set-charset">set_charset</a></li>
 	<li><a href="#db-begin">begin</a></li>
 	<li><a href="#db-commit">commit</a></li>
-	<li><a href="#db-begin">begin</a></li>
+	<li><a href="#db-rollback">rollback</a></li>
 	<li><a href="#db-end">end</a></li>
 	<li><a href="#db-errors">errors</a></li>
 	<li><a href="#db-db-error">db_error</a></li>
