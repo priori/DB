@@ -257,7 +257,7 @@ class DB{
 			$this->fire_error("PostgreSQL não funciona assim!");
 	}
 	public function escape(&$s){
-		// if( is_array($s))var_dump($s);
+		// if( is_array($s) )var_dump($s);
 		if( $this->mode === DB::MYSQLI ){
 			return $this->link->real_escape_string($s);
 		}elseif( $this->mode === DB::MYSQL ){

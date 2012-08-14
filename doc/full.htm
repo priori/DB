@@ -1,0 +1,349 @@
+<!DOCTYPE html> 
+<html> 
+	<head> 
+		<title>Priori DB </title> 
+		<meta charset="utf-8">
+		<link rel=stylesheet href=style.css> 
+		<style type=text/css> 
+		#content{ padding-right: 0;}
+			h3{
+				margin-bottom: 0
+			}
+			pre code {
+				-moz-border-radius:3px 3px 3px 3px;
+				padding:4px;
+				text-shadow:0 1px 0 #000000;
+				font-size: 11px
+			}
+			ul{
+				margin: 10px 0;
+			}
+			div.item{
+				float: left; width: 345px;
+			}
+			pre .comment, pre .java .annotation, pre .python .decorator, pre .template_comment, 
+						pre .pi, pre .doctype, pre .deletion, pre .shebang, pre .apache .sqbracket, 
+						pre .tex .formula {
+				color:#dd6 !important;
+			}
+			h3{ font-family: "Lucida Console", monospace }
+			div.item{ width: 340px;}
+			h3 a{ 
+position: relative;
+top: -10px;
+display: inline-block;
+width: 10px;
+height: 10px; background: white; border: none; text-decoration: none }
+		</style> 
+		<link rel=stylesheet href=dark.css> 
+	</head> 
+	<body> 
+		<div class=container_16><div class=grid_16 id=header> 
+				<h1>Priori DB</h1>	
+			</div> 
+			<hr> 
+			<div class=grid_12><div id=content> 
+					<h2>Priori DB</h2> 
+					<p>
+						A fantástica e melhor do universo tecnologia 
+						para se trabalhar com bando de dados.
+					</p>
+					<hr>
+					<div class=entry> 
+			
+				<h3>Classe DB<a id=db-class></a></h3>
+				<div class=interface><ul>
+					<li>DB( $host, $login, $password )
+					<li>DB( $parameters_array )
+				</ul></div>
+				<p> Para conectar a algum banco de dados e utilizar a Priori DB 
+					antes de tudo é preciso instanciar DB. 
+				<p>Todos os parametros são opcionais.
+					No Array de parametros podemos especificar:
+				<p>
+				<ul>
+					<li><b>port</b>: a porta
+					<li><b>host</b>: o host
+					<li><b>user</b>: o usuário
+					<li><b>password</b>: a senha
+					<li><b>postgresql</b>: para uso com o PostgreSQL
+					<li><b>db</b>: base (no PostgreSQL) 
+				</ul>
+				<p>Valores padrão:</p>
+				<ul>
+					<li>Login padrão é <b>root</b> no MySQL e <b>postgres</b> no PostgreSQL.
+					<li>Base padrão é <b>postgres</b>.
+					<li>Porta e outras opções padrões não são decididas pela ferramenta.
+					<li>Banco de dados padrão é MySQL
+				</ul>
+				<div class="item" style="margin-right:10px;float:left"><pre><code class="php">$db = new DB([
+  'port' => 1841,
+  'host' => 'priori.org',
+  'password' => '****',
+  'user' => 'priori',
+  'postgres', // ou 'postgres' => true
+  'db' => 'main_base'
+]);</code></pre></div>
+<div class="item" style=""><pre><code class="php">$db = new DB('priori.org','priori','****');</code></pre></div>
+<div class="item" style=""><pre><code class="php">// conectando ao mysql como root e senha vazia
+$db = new DB;</code></pre></div>
+
+
+<hr>
+<h3 style=clear:both>DB->select_db<a id=db-select-db></a></h3>
+<div class=interface><ul>
+	<li>DB->select_db( $db_name )
+</ul></div>
+<p>Muda para base especificada. Não funciona com PostgreSQL.</p>
+<div class="item" style=""><pre><code class="php">$db->select_db("the_name");</code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->inset_id<a id=db-insert-id></a></h3>
+<div class=interface><ul>
+	<li>DB->insert_id()
+</ul></div>
+<p>Pega o id inserido na última consulta. Somente para MySQL. Não funciona com PostgreSQL.</p>
+<div class="item" style=""><pre><code class="php">$id = $db->inset_id();</code></pre></div>
+
+
+
+
+
+<hr>
+<h3 style=clear:both>DB->escape<a id=db-escape></a></h3>
+<div class=interface><ul>
+	<li>DB->escape( $val )
+</ul></div>
+<p>Retorna o valor escapado para uso em SQLs. O valor não será retornado entre aspas.</p>
+<div class="item" style=""><pre><code class="php">$val = $db->escape( 'aa\'aa\'aa');
+$sql = 'SELECT * 
+FROM t 
+WHERE c = \''.$val.'\'';</code></pre></div>
+
+
+<hr>
+<h3 style=clear:both>DB->set_charset<a id=db-set-charset></a></h3>
+<div class=interface><ul>
+	<li>DB->set_charset( $charset )
+</ul></div>
+<p>Especifica a cofigicação com que a conexão irá trabalhar.</p>
+<div class="item" style=""><pre><code class="php">$val = $db->set_charset( 'LATIN1');</code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->begin<a id=db-begin></a></h3>
+<div class=interface><ul>
+	<li>DB->begin( $b )
+</ul></div>
+<p>Inicia uma transação. Se <b>true</b> é passado como parametro inicia-se a transação simples.
+Na transação simples qualquer erro resulta em rollback. Para fechar uma transação simplês use
+<b>end</b>.</p>
+<div class="item" style=""><pre><code class="php">$db->begin();</code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->commit<a id=db-commit></a></h3>
+<div class=interface><ul>
+	<li>DB->commit()
+</ul></div>
+<p>Dá um commit.</p>
+<div class="item" style=""><pre><code class="php">$db->commit();</code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->begin<a id=db-begin></a></h3>
+<div class=interface><ul>
+	<li>DB->begin( $b )
+</ul></div>
+<p>Inicia uma transação. Se <b>true</b> é passado como parametro inicia-se a transação simples.
+Na transação simples qualquer erro resulta em rollback. Para fechar uma transação simplês use
+<b>end</b>.</p>
+<div class="item" style=""><pre><code class="php">$db->begin();</code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->end<a id=db-end></a></h3>
+<div class=interface><ul>
+	<li>DB->end()
+</ul></div>
+<p>Terminha uma transação simples. Na transação simples qualquer erro resulta em rollback.</p>
+<div class="item" style=""><pre><code class="php">// inicia uma transação simples
+$db->begin( true ); 
+// ...
+$db->end();</code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->errors<a id=db-errors></a></h3>
+<div class=interface><ul>
+	<li>DB->errors()
+</ul></div>
+<p>O método retorna um objecto rico de 
+funcionalidades com os erros gerados pela operação anterior.
+Não todos os erros vão para este objecto, somente os de formatação de valores.
+</p>
+<div class="item" style=""><pre><code class="php">echo $db->errors(); </code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->db_error<a id=db-db-error></a></h3>
+<div class=interface><ul>
+	<li>DB->db_error()
+</ul></div>
+<p>Pega a mensagem de erro gerada internamente pelo banco de dados.
+</p>
+<div class="item" style=""><pre><code class="php">echo $db->db_error(); </code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->db_errno<a id=db-db-errno></a></h3>
+<div class=interface><ul>
+	<li>DB->db_errno()
+</ul></div>
+<p>Pega a mensagem o numero do erro gerado internamente pelo banco de dados.
+	Somente funciona com MySQL.
+</p>
+<div class="item" style=""><pre><code class="php">echo $db->db_errno(); </code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->query<a id=db-query></a></h3>
+<div class=interface><ul>
+	<li>DB->query( $sql )
+	<li>DB->query( $sql, $params_array )
+	<li>DB->query( $sql, $a, $b, $c... )
+</ul></div>
+<p>Executa uma SQL. Os parametros podem ser passados via um <b>array</b> ou um a um como 
+	parametros normais do método. Para inserir os parametros na sql use ?.
+</p>
+<div class="item" style="margin-right:10px;float:left"><pre><code class="php">$db->query('SELECT *
+FROM t
+WHERE t = ? AND d &gt; ?
+',5,10);</code></pre></div>
+<div class="item" style=""><pre><code class="php">$db->query('SELECT *
+FROM t
+WHERE t = ? AND d &gt; ?
+',array(5,10));</code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->fetch<a id=db-fetch></a></h3>
+<div class=interface><ul>
+	<li>DB->fetch( $sql )
+	<li>DB->fetch( $sql, $params_array )
+	<li>DB->fetch( $sql, $a, $b, $c... )
+</ul></div>
+<p>Similar a <b>query</b>, mas retorna o primeiro valor da lista de resultado.
+</p>
+<div class="item" style=""><pre><code class="php">$el = $db->fetch('select * form t
+  where id = 5');
+echo $el['name'];</code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->fetch_all<a id=db-fetch-all></a></h3>
+<div class=interface><ul>
+	<li>DB->fetch_all( $sql )
+	<li>DB->fetch_all( $sql, $params_array )
+	<li>DB->fetch_all( $sql, $a, $b, $c... )
+</ul></div>
+<p>Similar a <b>query</b>, mas o retorno é dado em forma de <b>array</b>.</p>
+<div class="item" style=""><pre><code class="php">$a = $db->fetch_all('SELECT * FROM t');
+echo $a[0]['col1'];
+echo '&lt;hr&gt;';
+echo $a[1]['col1'];</code></pre></div>
+
+
+
+<hr>
+<h3 style=clear:both>DB->link<a id=db-link></a></h3>
+<div class=interface><ul>
+	<li>DB->link()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db->link() ); </code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	</div> 
+	</div><div class="item">
+</div>
+<br style="clear: both"/>
+	</div> 
+</div> 
+<div id="sidebar" class="grid_3"> 
+	<ul>
+		<li style=font-weight:bold><a href=#db-class>Classe DB</a></li>
+	<li><a href="#db-select-db">select_db</a></li>
+	<li><a href="#db-insert-id">inset_id</a></li>
+	<li><a href="#db-escape">escape</a></li>
+	<li><a href="#db-set-charset">set_charset</a></li>
+	<li><a href="#db-begin">begin</a></li>
+	<li><a href="#db-commit">commit</a></li>
+	<li><a href="#db-begin">begin</a></li>
+	<li><a href="#db-end">end</a></li>
+	<li><a href="#db-errors">errors</a></li>
+	<li><a href="#db-db-error">db_error</a></li>
+	<li><a href="#db-db-errno">db_errno</a></li>
+	<li><a href="#db-query">query</a></li>
+	<li><a href="#db-fetch">fetch</a></li>
+	<li><a href="#db-fetch-all">fetch_all</a></li>
+	<li><a href="#db-link">link</a></li>
+
+
+
+	</ul>
+</div> 
+ </script> 
+ <hr /> 
+ <div id="footer" class="grid_16"> 
+	 <p> 
+	 &copy; 2010. L. Priori Organization. Powered by
+	 <a href="http://wordpress.org/">WordPress</a>. Theme design by <a href="http://wpshoppe.com/">WPShoppe</a>.
+	 </p> 
+ </div> 
+</div> 
+</div> 
+<script src=http://code.jquery.com/jquery-1.4.2.min.js></script> 
+<script src=highlight.pack.js></script> 
+<script type="text/javascript"> 
+hljs.tabReplace = '    ';
+hljs.initHighlightingOnLoad();
+</script>
+</body> 
+</html>
