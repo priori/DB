@@ -195,7 +195,7 @@ class DB{
 			$this->validation_errors = false;
 		}
 		if( $this->echo_queries ){
-			echo htmlspecialchars($q).'<br/>';
+			echo strtr($q,array('>'=>'&gt;','<'=>'&lt;','&'=>'&amp;')).'<br/>';
 		}
 		if( $this->mode === DB::POSTGRESQL ){
 			$r = pg_query( $this->link, $q );
