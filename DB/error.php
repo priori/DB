@@ -7,7 +7,7 @@ class ErrorList{
 	
 	public function ErrorList( $a=false, $b=false )
 	{
-		if( is_array($a) && is_array($b) ){
+		if( is_array($a) and is_array($b) ){
 			$this->a = $a;
 			$this->fields = $b;
 		}

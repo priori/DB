@@ -30,8 +30,8 @@ class DB{
 
 	public function __set( $a, $b ){
 		if( $a === 'error_mode' ){
-			if( $b !== 1 && $b !== 2 && $b !== 4 ){
-				$this->fire_error( "Modo de erro invalido!" );
+			if( $b !== 1 and $b !== 2 and $b !== 4 ){   
+				$this->fire_error( "Modo de erro invalido!" );   
 			}
 			$this->error_mode = $b;
 		}else{
@@ -46,15 +46,15 @@ class DB{
 			$bt = debug_backtrace();
 			$d = false;
 			foreach( $bt as $t ){
-				 // && basename($t['file']) == 'db.php'
-				if( isset($t['class']) && ($t['class'] === 'DB' || $t['class'] === 'Model')){ // aqui esta o segredo
-					$d = $t;
+				 // and basename($t['file']) == 'db.php' 
+				if( isset($t['class']) and ($t['class'] === 'DB' or $t['class'] === 'Model')){ // aqui esta o segredo
+					$d = $t;  
 					continue;
 				}
 				break;
 			}
 			echo "<br/><strong>Error</strong>: ";
-			if( $d['function'] === 'offsetSet' ){ // && mais alguma coisa
+			if( $d['function'] === 'offsetSet' ){ // and mais alguma coisa
 				if( isset($d['class']) ){
 					echo $d['class'];
 				}
@@ -213,7 +213,7 @@ class DB{
 		else
 			$err = mysql_errno($this->link);
 
-		if( $err && $this->transaction_count ){
+		if( $err and $this->transaction_count ){
 			if( $this->mode === DB::MYSQLI ){
 				$this->trans_error = $this->link->errno;
 				$this->trans_errno = $err;
@@ -257,13 +257,13 @@ class DB{
 			$this->fire_error("PostgreSQL não funciona assim!");
 	}
 	public function escape(&$s){
-		// if( is_array($s))var_dump($s);
+		// if( is_array($s) )var_dump($s);
 		if( $this->mode === DB::MYSQLI ){
 			return $this->link->real_escape_string($s);
 		}elseif( $this->mode === DB::MYSQL ){
 			return mysql_real_escape_string($s,$this->link);
 		}elseif( $this->mode === DB::POSTGRESQL ){
-			if( is_int($s) || is_float($s) ){
+			if( is_int($s) or is_float($s) ){
 				return $s;
 			}else{
 				return pg_escape_string( $this->link, $s );
@@ -313,7 +313,7 @@ class DB{
 		if( $b === true ){
 			$this->transaction_count--;
 			if( !$this->transaction_count ){
-				if( $this->smart_rollback ||
+				if( $this->smart_rollback or 
 					$this->_has_validation_error ){
 				$this->smart_rollback = false;
 				$this->_query('ROLLBACK');
@@ -337,7 +337,7 @@ class DB{
 	private $_first_query_with_error = false;
 	public function errors(){
 		$a = func_get_args();
-		if( count($a) && $this->validation_errors )
+		if( count($a) and $this->validation_errors )
 			return $this->validation_errors->messages( $a );
 		return $this->validation_errors;
 	}
