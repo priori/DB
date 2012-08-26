@@ -71,6 +71,8 @@ class DB{
 				}
 				if( is_string($d['args'][1]) ){
 					echo htmlspecialchars( $d['args'][1] );
+				}elseif( is_array($d['args'][1]) ){
+					echo 'array()';
 				}else{
 					echo $d['args'][1];
 				}
@@ -271,12 +273,22 @@ class DB{
 		}
 	}
 	public function set_charset($c){
-		if( $this->mode === DB::POSTGRESQL ) //TODO pg_setclientencoding
+		if( $this->mode === DB::POSTGRESQL ){ //TODO pg_setclientencoding
 			return pg_set_client_encoding( $this->link, $c );
+		}
 		if( $this->mode === DB::MYSQLI )
 			return $this->link->set_charset( $c );
 		elseif( $this->mode === DB::MYSQL )
 		return mysql_set_charset( $c, $this->link );
+	}
+	public function get_charset(){
+		if( $this->mode === DB::POSTGRESQL ){ //TODO pg_setclientencoding
+			return pg_client_encoding( $this->link );
+		}
+		if( $this->mode === DB::MYSQLI )
+			return $this->link->get_charset( $c );
+		elseif( $this->mode === DB::MYSQL )
+		return mysql_encoding( $c, $this->link );
 	}
 
 	private $models = array();

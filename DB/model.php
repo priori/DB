@@ -1,7 +1,7 @@
-<?php 
+<?php
 
 class Model implements arrayaccess{
-	
+
 	private $db;
 	private $args;
 	private $alias; // model name
@@ -27,7 +27,7 @@ class Model implements arrayaccess{
 			$this->b = '`';
 		}
 	}
-	
+
 	public function __toString(){
 		if( $this->schema )
 			return $this->a.$this->schema.$this->b.'.'.$this->a.$this->name.$this->b;
@@ -83,11 +83,11 @@ class Model implements arrayaccess{
 		$this->sql_where_id_eq($q, $id);
 		return $this->db->_query(implode('',$q));
 	}
-	
+
 	// add, insert
 	public function add( $e ){
 		// sem multiplas insersoes por enquanto
-		// if( $e2 !== false ){ $e2=false; $e=func_get_args(); } 
+		// if( $e2 !== false ){ $e2=false; $e=func_get_args(); }
 		return $this->_add( $e, false );
 	}
 	public function replace( $e ){
@@ -95,13 +95,13 @@ class Model implements arrayaccess{
 	}
 
 	private $macros = array('sql'=>true,'now'=>true,'date'=>true,'int'=>true,'text'=>true,
-		'format'=>true,'num'=>true,'numeric'=>true,'integer'=>true, 'serialize'=>true ); 
+		'format'=>true,'num'=>true,'numeric'=>true,'integer'=>true, 'serialize'=>true );
 	// microtime, date_time, required, length_gt, length_lt, gt, lt
 	private $macros_alias = array('num'=>'numeric','int'=>'integer');
 	private $macros_optional_params = array('date'=>true,'text'=>true,'sql'=>true); // numeric(size)
 	private $macros_required_params = array('format'=>true);
 	private function validate( &$es, &$vals, $tipo ){
-		// nao vamos pensar em vals por enquanto 
+		// nao vamos pensar em vals por enquanto
 		$r = true;
 		$msg = array();
 		$ok = true;
@@ -117,7 +117,7 @@ class Model implements arrayaccess{
 						$msg[] = 'Be aware of white spaces in macros. ';
 					}elseif( isset($this->macros[trim(strtolower($macro))]) ){
 						$msg[] = 'Use lower case and no white spaces in macros. ';
-					} 
+					}
 					continue;
 					$ok = false;
 				}
@@ -137,7 +137,7 @@ class Model implements arrayaccess{
 				}
 			}
 			if( $ok and !isset($es[$k]['content']) ){
-				$this->value( $e, $es[$k]['content'] );
+				$this->value( $es[$k], $es[$k]['content'] );
 			}
 		}
 		return $ok;
@@ -150,7 +150,7 @@ class Model implements arrayaccess{
 		}
 		return $this->__add($e,$replace);
 	}
-	
+
 	public function __add(&$e,$replace=false,$multiple_insertions=false){
 		$q = array();
 		if( $replace===true )
@@ -175,7 +175,7 @@ class Model implements arrayaccess{
 		$entries[] = array();
 		$names = array(); // nomes das col utilizadas
 
-		// se houver relações has many ou for utilizada outro tipo 
+		// se houver relações has many ou for utilizada outro tipo
 		// de funcionalidade que necessite de transações
 		$need_transaction = false;
 
@@ -191,7 +191,7 @@ class Model implements arrayaccess{
 				$entry =& $e;
 			}else{
 				// mais complicado
-				// if default value 
+				// if default value
 				// guarda default value
 				// continue
 				// else
@@ -229,7 +229,7 @@ class Model implements arrayaccess{
 		}
 		return $r0;
 	}
-	
+
 	// quando não usa aspas
 	// não dá fazer resolver no _value (formata e valida)
 	private function sql_value( &$q, &$v, &$b, &$c ){
@@ -252,7 +252,7 @@ class Model implements arrayaccess{
 			}
 		}
 	}
-	
+
 	private function _values( &$q, &$entries, &$names, &$need_transaction,
 			&$default_values ){
 		$b2 = false;
@@ -267,13 +267,13 @@ class Model implements arrayaccess{
 				}
 				$attr;
 				if( isset($entry[$name]) ){
-					$attr =& $entry[$name];  			
+					$attr =& $entry[$name];
 					if( isset($attr['content']) ){ // ponteiro
 						$v = $attr['content'];
 					}else{
 						$this->db->fire_error('Chave sem valor!');
 						return;
-					}                
+					}
 					$this->sql_value( $q, $v, $attr, $attr );
 				}else{
 					$q[] = 'DEFAULT';
@@ -285,11 +285,12 @@ class Model implements arrayaccess{
 		}
 		return $this->db->_query( implode('',$q) );
 	}
-	
+
 	private function value( &$attr, &$value ){
-		include 'value.php';
+		$r = (include 'value.php');
+		return $r;
 	}
-	
+
 	private $valid_macros = array('date'=>true,'time'=>true,'date_time'=>true,
 		'sql'=>true,'int'=>true,'decimal'=>true,'trim'=>true,'bool'=>true,
 		'now'=>true,'format'=>true,'parse'=>true);
@@ -306,13 +307,13 @@ class Model implements arrayaccess{
 		$sql = implode('',$sql);
 		return $this->db->_query( $sql );
 	}
-	
+
    // get
 	public function get($id){
 		$t = $this->__toString();
 		$sql = array("SELECT * FROM $t ");
 		$this->sql_where_id_eq( $sql, $id );
-		$sql = implode('',$sql);             
+		$sql = implode('',$sql);
 		$r = $this->db->_query($sql);
 		return $r->fetch();
 	}
@@ -342,7 +343,7 @@ class Model implements arrayaccess{
 
 
 
-	
+
 	// adiciona erro a transacao
 	// ou a ultima (será próxima?) query
 	private function add_error( $field, $arg ){
@@ -351,7 +352,7 @@ class Model implements arrayaccess{
 		}else
 			$this->db->_add_error($this->name,$field,$arg);
 	}
-	
+
 
 	private function sql_date_format($d,$format){
 		$d = explode('/',$d);
@@ -376,9 +377,9 @@ class Model implements arrayaccess{
 		$format = eregi_replace('mm',$month,$format);
 		return eregi_replace('m',''.((int)$month),$format);
 	}
-	
+
 	private function sql_date($d,$format){
-		$f = strtr($format,array( 
+		$f = strtr($format,array(
 			'dd' => '([0-9][0-9])','mm' => '([0-9][0-9])',
 			'yyyy' => '([0-9][0-9][0-9][0-9])',
 			'd' => '([0-9][0-9]?)','m' => '([0-9][0-9]?)',
@@ -392,7 +393,7 @@ class Model implements arrayaccess{
 		$r2 = $r2[0];
 		if( !count($r) )return false;
 		array_shift($r);
-		
+
 		$day = false;
 		$year = false;
 		$month = false;
@@ -470,13 +471,13 @@ class Model implements arrayaccess{
 		$sql = implode('',$sql);
 		return $this->db->_query( $sql );
 	}
-	
+
    // get
 	public function offsetGet($id){
 		$t = $this->__toString();
 		$sql = array("SELECT * FROM $t ");
 		$this->sql_where_id_eq( $sql, $id );
-		$sql = implode('',$sql);             
+		$sql = implode('',$sql);
 		$r = $this->db->_query($sql);
 		return $r->fetch();
 	}
@@ -487,7 +488,7 @@ class Model implements arrayaccess{
 			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
 		$sql = array("SELECT 1 FROM $t ");
 		$this->sql_where_id_eq($sql,$id);
-		$sql = implode('',$sql);             
+		$sql = implode('',$sql);
 		$r = $this->db->_query($sql);
 		return $r->num_rows() > 0;
 	}

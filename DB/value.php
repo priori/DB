@@ -1,7 +1,6 @@
 <?php
 
 
-
 if( isset($attr['sql'])  ){
 	if( is_string($attr['sql']) ){
 		
@@ -38,7 +37,6 @@ if( isset($attr['sql'])  ){
 }else if( $value === NULL ){
 	$value = 'NULL';
 	$attr['sql'] = true;
-	return true;
 
 }elseif( isset($attr['serialize']) ){
 	$value = serialize($value);
