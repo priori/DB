@@ -1,115 +1,79 @@
 <!DOCTYPE html> 
-<html> 
-	<head> 
-		<title>Priori DB </title> 
-		<meta charset="utf-8">
-		<link rel=stylesheet href=style.css> 
-		<style type=text/css> 
-		#content{ padding-right: 0;}
-			h3{
-				margin-bottom: 0
-			}
-			pre code {
-				-moz-border-radius:3px 3px 3px 3px;
-				padding:4px;
-				text-shadow:0 1px 0 #000000;
-				font-size: 11px
-			}
-			ul{
-				margin: 10px 0;
-			}
-			div.item{
-				float: left; width: 345px;
-			}
-			pre .comment, pre .java .annotation, pre .python .decorator, pre .template_comment, 
-						pre .pi, pre .doctype, pre .deletion, pre .shebang, pre .apache .sqbracket, 
-						pre .tex .formula {
-				color:#dd6 !important;
-			}
-			h3{ font-family: "Lucida Console", monospace }
-			div.item{ width: 340px;}
-			h3 a{ 
-position: relative;
-top: -10px;
-display: inline-block;
-width: 10px;
-height: 10px; background: white; border: none; text-decoration: none }
-		</style> 
-		<link rel=stylesheet href=dark.css> 
-	</head> 
-	<body> 
-		<div class=container_16><div class=grid_16 id=header> 
-				<h1>Priori DB</h1>	
-			</div> 
-			<hr> 
-			<div class=grid_12><div id=content> 
-					<h2>Priori DB</h2> 
-					<p>
-						A fantástica e melhor do universo tecnologia 
-						para se trabalhar com bando de dados.
-					</p>
-					<hr>
-					<div class=entry> 
-			
-				<h3>Classe DB<a id=db-class></a></h3>
-				<div class=interface><ul>
-					<li>DB( $host, $login, $password )
-					<li>DB( $parameters_array )
-				</ul></div>
-				<p> Para conectar a algum banco de dados e utilizar a Priori DB 
-					antes de tudo é preciso instanciar DB. 
-				<p>Todos os parametros são opcionais.
-					No Array de parametros podemos especificar:
-				<p>
-				<ul>
-					<li><b>port</b>: a porta
-					<li><b>host</b>: o host
-					<li><b>user</b>: o usuário
-					<li><b>password</b>: a senha
-					<li><b>postgresql</b>: para uso com o PostgreSQL
-					<li><b>db</b>: base (no PostgreSQL) 
-				</ul>
-				<p>Valores padrão:</p>
-				<ul>
-					<li>Login padrão é <b>root</b> no MySQL e <b>postgres</b> no PostgreSQL.
-					<li>Base padrão é <b>postgres</b>.
-					<li>Porta e outras opções padrões não são decididas pela ferramenta.
-					<li>Banco de dados padrão é MySQL
-				</ul>
-				<div class="item" style="margin-right:10px;float:left"><pre><code class="php">$db = new DB([
-  'port' => 1841,
-  'host' => 'priori.org',
-  'password' => '****',
-  'user' => 'priori',
-  'postgres', // ou 'postgres' => true
-  'db' => 'main_base'
+<title>Priori DB </title> 
+<meta charset=utf-8>
+<link rel=stylesheet href=style.css> 
+<link rel=stylesheet href=dark.css> 
+<div>
+<div id=header>
+	<h1>Priori DB</h1>	
+	<p>
+		A fantástica e melhor e mais fantástica tecnologia 
+		para se trabalhar com bando de dados que o mundo já viu.
+	</p>
+</div>
+
+<div class=entries>
+
+	<div class=entry> 
+	<h2>Classe DB<a id=db-class></a></h2>
+	<div class=interface><ul>
+		<li>DB( $host, $login, $password )
+		<li>DB( $parameters_array )
+	</ul></div>
+	<p> Para conectar a algum banco de dados e utilizar a Priori DB 
+		antes de tudo é preciso instanciar DB. 
+	<p>Todos os parametros são opcionais.
+		No Array de parametros podemos especificar:
+	<p>
+	<ul>
+		<li><b>port</b>: a porta
+		<li><b>host</b>: o host
+		<li><b>user</b>: o usuário
+		<li><b>password</b>: a senha
+		<li><b>postgresql</b>: para uso com o PostgreSQL
+		<li><b>db</b>: base (no PostgreSQL) 
+	</ul>
+	<p>Valores padrão:</p>
+	<ul>
+		<li>Login padrão é <b>root</b> no MySQL e <b>postgres</b> no PostgreSQL.
+		<li>Base padrão é <b>postgres</b>.
+		<li>Porta e outras opções padrões não são decididas pela ferramenta.
+		<li>Banco de dados padrão é MySQL
+	</ul>
+	<div class="item" style="margin-right:10px;float:left"><pre><code class="php">$db = new DB([
+  'port' =&gt; 1841,
+  'host' =&gt; 'priori.org',
+  'password' =&gt; '****',
+  'user' =&gt; 'priori',
+  'postgres', // ou 'postgres' =&gt; true
+  'db' =&gt; 'main_base'
 ]);</code></pre></div>
 <div class="item" style=""><pre><code class="php">$db = new DB('priori.org','priori','****');</code></pre></div>
 <div class="item" style=""><pre><code class="php">// conectando ao mysql como root e senha vazia
 $db = new DB;</code></pre></div>
 
 
-<hr>
-<h3 style=clear:both>DB->select_db<a id=db-select-db></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::select_db<a id=db-select-db></a></h2>
 <div class=interface><ul>
-	<li>DB->select_db( $db_name )
+	<li>$db-&gt;select_db( $db_name )
 </ul></div>
 <p>Muda para base especificada. Não funciona com PostgreSQL.</p>
-<div class="item" style=""><pre><code class="php">$db->select_db("the_name");</code></pre></div>
+<div class="item" style=""><pre><code class="php">$db-&gt;select_db("the_name");</code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->inset_id<a id=db-insert-id></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::inset_id<a id=db-insert-id></a></h2>
 <div class=interface><ul>
-	<li>DB->insert_id()
+	<li>$db-&gt;insert_id()
 </ul></div>
 <p>Pega o id inserido na última consulta. Somente para MySQL. Não funciona com PostgreSQL.</p>
-<div class="item" style="margin-right:10px"><pre><code class="php">$id = $db->inset_id();
+<div class="item" style="margin-right:10px"><pre><code class="php">$id = $db-&gt;inset_id();
 $sql = "INSERT INTO t(c, c2, t2_id) 
         VALUES( 1, 2, $id )";</code></pre></div>
 <div class="item" style=""><pre><code class="php">// cuidado para não cometer este erro
-$id = $db->inset_id;
+$id = $db-&gt;inset_id;
 // $id está com o modelo (tabela) "insert_id"
 </code></pre></div>
 
@@ -117,174 +81,655 @@ $id = $db->inset_id;
 
 
 
-<hr>
-<h3 style=clear:both>DB->escape<a id=db-escape></a></h3>
+		  </div><div class=entry>
+<h2 style=clear:both>DB::escape<a id=db-escape></a></h2>
 <div class=interface><ul>
-	<li>DB->escape( $val )
+	<li>$db-&gt;escape( $val )
 </ul></div>
 <p>Retorna o valor escapado para uso em SQLs. O valor não será retornado entre aspas.</p>
-<div class="item" style=""><pre><code class="php">$val = $db->escape( 'aa\'aa\'aa');
+<div class="item" style=""><pre><code class="php">$val = $db-&gt;escape( 'aa\'aa\'aa');
 $sql = 'SELECT * 
 FROM t 
 WHERE c = \''.$val.'\'';</code></pre></div>
 
 
-<hr>
-<h3 style=clear:both>DB->set_charset<a id=db-set-charset></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::set_charset<a id=db-set-charset></a></h2>
 <div class=interface><ul>
-	<li>DB->set_charset( $charset )
+	<li>$db-&gt;set_charset( $charset )
 </ul></div>
 <p>Especifica a cofigicação com que a conexão irá trabalhar.</p>
-<div class="item" style=""><pre><code class="php">$val = $db->set_charset( 'LATIN1');</code></pre></div>
+<div class="item" style=""><pre><code class="php">$val = $db-&gt;set_charset( 'LATIN1');</code></pre></div>
 
 
-
-<hr>
-<h3 style=clear:both>DB->begin<a id=db-begin></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::get_charset<a id=db-get-charset></a></h2>
 <div class=interface><ul>
-	<li>DB->begin( $b )
+	<li>$db-&gt;get_charset()
+</ul></div>
+<p>Especifica a cofigicação com que a conexão irá trabalhar.</p>
+<div class="item" style=""><pre><code class="php">$val = $db-&gt;set_charset( 'LATIN1');</code></pre></div>
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>DB::begin<a id=db-begin></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;begin( $b )
 </ul></div>
 <p>Inicia uma transação. Se <b>true</b> é passado como parametro inicia-se a transação simples.
 Na transação simples qualquer erro resulta em rollback. Para fechar uma transação simplês use
 <b>end</b>.</p>
-<div class="item" style=""><pre><code class="php">$db->begin();</code></pre></div>
+<div class="item" style=""><pre><code class="php">$db-&gt;begin();</code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->commit<a id=db-commit></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::commit<a id=db-commit></a></h2>
 <div class=interface><ul>
-	<li>DB->commit()
+	<li>$db-&gt;commit()
 </ul></div>
 <p>Dá um commit.</p>
-<div class="item" style=""><pre><code class="php">$db->commit();</code></pre></div>
+<div class="item" style=""><pre><code class="php">$db-&gt;commit();</code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->rollback<a id=db-rollback></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::rollback<a id=db-rollback></a></h2>
 <div class=interface><ul>
-	<li>DB->rollback( $b )
+	<li>$db-&gt;rollback( $b )
 </ul></div>
 <p>Dá um <b>ROLLBACK</b>.</p>
-<div class="item" style=""><pre><code class="php">$db->rollback();</code></pre></div>
+<div class="item" style=""><pre><code class="php">$db-&gt;rollback();</code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->end<a id=db-end></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::end<a id=db-end></a></h2>
 <div class=interface><ul>
-	<li>DB->end()
+	<li>$db-&gt;end()
 </ul></div>
 <p>Terminha uma transação simples. Na transação simples qualquer erro resulta em rollback.</p>
 <div class="item" style=""><pre><code class="php">// inicia uma transação simples
-$db->begin( true ); 
+$db-&gt;begin( true ); 
 // ...
-$db->end();</code></pre></div>
+$db-&gt;end();</code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->errors<a id=db-errors></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::errors<a id=db-errors></a></h2>
 <div class=interface><ul>
-	<li>DB->errors()
+	<li>$db-&gt;errors()
 </ul></div>
-<p>O método retorna um objecto rico de 
-funcionalidades com os erros gerados pela operação anterior.
+<p>Retorna um objecto rico de funcionalidades com os erros gerados pela operação anterior.
 Não todos os erros vão para este objecto, somente os de formatação de valores.
 </p>
-<div class="item" style=""><pre><code class="php">echo $db->errors(); </code></pre></div>
+<div class="item" style=""><pre><code class="php">echo $db-&gt;errors(); </code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->db_error<a id=db-db-error></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::db_error<a id=db-db-error></a></h2>
 <div class=interface><ul>
-	<li>DB->db_error()
+	<li>$db-&gt;db_error()
 </ul></div>
 <p>Pega a mensagem de erro gerada internamente pelo banco de dados.
 </p>
-<div class="item" style=""><pre><code class="php">echo $db->db_error(); </code></pre></div>
+<div class="item" style=""><pre><code class="php">echo $db-&gt;db_error(); </code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->db_errno<a id=db-db-errno></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::db_errno<a id=db-db-errno></a></h2>
 <div class=interface><ul>
-	<li>DB->db_errno()
+	<li>$db-&gt;db_errno()
 </ul></div>
 <p>Pega a mensagem o numero do erro gerado internamente pelo banco de dados.
 	Somente funciona com MySQL.
 </p>
-<div class="item" style=""><pre><code class="php">echo $db->db_errno(); </code></pre></div>
+<div class="item" style=""><pre><code class="php">echo $db-&gt;db_errno(); </code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->query<a id=db-query></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::query<a id=db-query></a></h2>
 <div class=interface><ul>
-	<li>DB->query( $sql )
-	<li>DB->query( $sql, $params_array )
-	<li>DB->query( $sql, $a, $b, $c... )
+	<li>$db-&gt;query( $sql )
+	<li>$db-&gt;query( $sql, $params_array )
+	<li>$db-&gt;query( $sql, $a, $b, $c... )
 </ul></div>
 <p>Executa uma SQL. Os parametros podem ser passados via um <b>array</b> ou um a um como 
 	parametros normais do método. Para inserir os parametros na sql use ?.
 </p>
-<div class="item" style="margin-right:10px;float:left"><pre><code class="php">$db->query('SELECT *
+<div class="item" style="margin-right:10px;float:left"><pre><code class="php">$db-&gt;query('SELECT *
 FROM t
 WHERE t = ? AND d &gt; ?
 ',5,10);</code></pre></div>
-<div class="item" style=""><pre><code class="php">$db->query('SELECT *
+<div class="item" style=""><pre><code class="php">$db-&gt;query('SELECT *
 FROM t
 WHERE t = ? AND d &gt; ?
 ',array(5,10));</code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->fetch<a id=db-fetch></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::fetch<a id=db-fetch></a></h2>
 <div class=interface><ul>
-	<li>DB->fetch( $sql )
-	<li>DB->fetch( $sql, $params_array )
-	<li>DB->fetch( $sql, $a, $b, $c... )
+	<li>$db-&gt;fetch( $sql )
+	<li>$db-&gt;fetch( $sql, $params_array )
+	<li>$db-&gt;fetch( $sql, $a, $b, $c... )
 </ul></div>
 <p>Similar a <b>query</b>, mas retorna o primeiro valor da lista de resultado.
 </p>
-<div class="item" style=""><pre><code class="php">$el = $db->fetch('select * form t
+<div class="item" style=""><pre><code class="php">$el = $db-&gt;fetch('select * form t
   where id = 5');
 echo $el['name'];</code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->fetch_all<a id=db-fetch-all></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::fetch_all<a id=db-fetch-all></a></h2>
 <div class=interface><ul>
-	<li>DB->fetch_all( $sql )
-	<li>DB->fetch_all( $sql, $params_array )
-	<li>DB->fetch_all( $sql, $a, $b, $c... )
+	<li>$db-&gt;fetch_all( $sql )
+	<li>$db-&gt;fetch_all( $sql, $params_array )
+	<li>$db-&gt;fetch_all( $sql, $a, $b, $c... )
 </ul></div>
 <p>Similar a <b>query</b>, mas o retorno é dado em forma de <b>array</b>.</p>
-<div class="item" style=""><pre><code class="php">$a = $db->fetch_all('SELECT * FROM t');
+<div class="item" style=""><pre><code class="php">$a = $db-&gt;fetch_all('SELECT * FROM t');
 echo $a[0]['col1'];
 echo '&lt;hr&gt;';
+</div><div class=entry>
 echo $a[1]['col1'];</code></pre></div>
 
 
 
-<hr>
-<h3 style=clear:both>DB->link<a id=db-link></a></h3>
+</div><div class=entry>
+<h2 style=clear:both>DB::link<a id=db-link></a></h2>
 <div class=interface><ul>
-	<li>DB->link()
+	<li>$db-&gt;-&gt;link()
 </ul></div>
 <p>Retorna o source ou objecto que é usado internamente pela biblioteca.
 </p>
-<div class="item" style=""><pre><code class="php">var_dump( $db->link() ); </code></pre></div>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
 
 
 
 
 
 
+</div><div class=entry>
+<h2 style=clear:both>Classe Model<a id=model-class></a></h2>
+<div class=interface>
+  <ul>
+    <li>$db-&gt;model
+    </ul></div>
+<p>Retorna um modelo pronto com determinado nome (que de acordo com o padrão será o nome da tabela).
+</p>
+<div class="item" style="">
+  <pre><code class="php">var_dump( $db-&gt;my_table );</code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2>Model::add<a id=model-add></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;model-&gt;add( array() )
+</ul></div>
+<p>Persiste uma nova entrada de um modelo (realiza um <strong>INSERT</strong>). <br>
+  Aceita macros diversas para formatar, validar, forçar comportamento, etc.</p>
+<div class="item" style="">
+  <pre><code class="php">$db-&gt;people-&gt;add([<br>  'name' =&gt; 'Leonardo',
+  'age'  =&gt; 5<br>]);<br>// INSERT INTO people ( name, age )<br>// VALUES ('Leonardo', 5)</code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Model::set<a id=model-set></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;set()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Model::remove<a id=model-remove></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;remove()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Model::get<a id=model-get></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;get()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Model::find<a id=model-find></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;find()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Model::remove_where<a id=model-remove-where></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;remove_where()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Model::get_where<a id=model-get-where></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;get_where()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+</div><div class=entry>
+<h2 style=clear:both>Model::add_error<a id=model-add-error></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;add_error()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Model::set_where<a id=model-set-where></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;set_where()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+</div><div class=entry>
+<h2 style=clear:both>Model::add_error<a id=model-add-error></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;add_error()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Model::save<a id=model-save></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;save()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Model::post<a id=model-post></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;post()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Model::set_model<a id=model-set-model></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;set_model()
+</ul></div>
+<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+</p>
+<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>HAS MANY<a id=has-may></a></h2>
+<p>
+</p>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">$db-&gt;user-&gt;add(array(
+	'name' =&gt; 'Leonardo',
+	'tel:fk(user_pk)' =&gt; array(
+		array( 'number' =&gt; '165165165', 'type' =&gt; 'home', 'ddd' =&gt; '51' ),
+		array( 'number' =&gt; '165165165', 'type' =&gt; 'cel', 'ddd' =&gt; '51' ),
+		array( 'number' =&gt; '165165165', 'type' =&gt; 'home', 'ddd' =&gt; '51' )
+	)
+));</code></pre></div>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">$db-&gt;user-&gt;set($id,array(
+	'name' =&gt; 'Leonardo',
+	'tel:fk(user_pk):pk(tel_id)' =&gt; array(
+		'5', '7',
+		array( 'number' =&gt; '165165165', 'type' =&gt; 'cel', 'ddd' =&gt; '51' ),
+		array( 'tel_id' =&gt; 99, 'number' =&gt; '165165165', 'type' =&gt; 'home', 'ddd' =&gt; '51' )
+	)
+));</code></pre></div>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">$db-&gt;user-&gt;save(array(
+	'name' =&gt; 'Leonardo',
+	'tel:add' =&gt; array( // adiciona estes aos telefones
+		array( 'number' =&gt; '165165165', 'type' =&gt; 'home', 'ddd' =&gt; '51' ),
+		array( 'number' =&gt; '165165165', 'type' =&gt; 'cel', 'ddd' =&gt; '51' ),
+		array( 'number' =&gt; '165165165', 'type' =&gt; 'home', 'ddd' =&gt; '51' )
+	)
+));</code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Entries<a id=entries-class></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;query()
+	<li>$db-&gt;find()
+</ul></div>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">echo $db-&gt;query('SELECT * FROM tbl');</code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Entries::__toString<a id=entries-to-string></a></h2>
+<div class=interface><ul>
+		<li>$es-&gt;__toString()
+		<li>''.$es
+</ul></div>
+<p>Tabela HTML do resultado.
+</p>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">$str = $db-&gt;query('select id, name from tbl').'';</code></pre></div>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">echo $es;</code></pre></div>
+<table>
+	<thead><tr><th>id</th><th>name</th></tr></thead>
+	<tbody>
+		<tr><td>1</td><td>Leonardo Priori</td></tr>
+		<tr><td>2</td><td>Filipe Priori</td></tr>
+		<tr><td>3</td><td>Rafael Ribeiro Bento</td></tr>
+	</tbody>
+</table>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Schema<a id=schema-class></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;schema_name
+</ul></div>
+
+<p style=margin-right:10px>No PostgreSQL é preciso dizer o schema para acessar uma tabela.
+Assim não se pode acessar diretamente as tabelas com $db-&gt;table. Se deve no lugar acessar atravez do schema assim: <b>$db-&gt;schema-&gt;table</b>.<p style=margin-right:10px>Para o schema público use <b>$db-&gt;public-&gt;table</b> ou especifique as tabelas públicas antesde usar: <b>$db-&gt;public = array( 'user', 'log', 'tbl2', 'etc' )</b>. Ou ainda você pode especificar quais são os schemas <b>$db-&gt;schemas = array('shcema2','asdf','portal','log')</b>.
+</p>
+<div class="item" style=width:auto;float:none;margin-right:10px;><pre><code class=php>$db-&gt;schemas = array('a','b,'c');
+$db-&gt;a-&gt;tbl-&gt;add( ... );
+$db-&gt;d-&gt;add( ... );</code></pre></div>
+<div class="item" style=width:auto;float:none;margin-right:10px;><pre><code class=php>$db-&gt;public = array('a','b,'c');
+$db-&gt;a-&gt;add( ... );
+$db-&gt;d-&gt;tbl-&gt;add( ... );</code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Errors<a id=errors-class></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;errors()
+</ul></div>
+<p>Erros de validação. Diferente dos erros normais estes não são disparados com throw ou mesmo com asdf_error.
+Eles são armazenados no objeto DB depois da tentativa de executar uma operação de insert, update, etc que 
+retornaram false (caso contrário iria ser retornado true).</p>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">if( !$db-&gt;user-&gt;add( $a ) ){
+	echo $db-&gt;errors();
+}</code></pre></div>         
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Errors::get<a id=errors-get></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;errors( $field_name )
+	<li>$errors-&gt;get( $field_name )
+	<li>$errors[ $field_name ]
+	<li>$errors-&gt;field_name
+</ul></div>
+<p>Errors relativos a algum campo específico</p>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">if( $e = $db-&gt;erros('user_name') ){
+	echo 'Nome de usuário inválido';
+	echo $e;
+}</code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Error<a id=error-class></a></h2>
+<p>
+</p>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">
+</code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Error::type<a id=error-type></a></h2>
+<p>
+</p>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">
+</code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Error::field<a id=error-field></a></h2>
+<p>
+</p>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">
+</code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Error::msg<a id=error-msg></a></h2>
+<p>
+</p>
+<div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">
+</code></pre></div>
+
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>(DB|Schema|Model)::auto_trim<a id=auto-trim></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;auto_trim()
+	<li>$db-&gt;model-&gt;auto_trim()
+	<li>$db-&gt;schema-&gt;auto_trim()
+</ul></div>
+<p>Se o auto trim está ativado. Com ele ativado os espaços no final e no inicio dos valores são removidos.</p>
+<div class=item><pre><code class="php">if( $db-&gt;auto_trim() )
+	echo 'Auto Trim ativado!";</code></pre></div>
+
+
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>(DB|Schema|Model)::set_auto_trim<a id=set-auto-trim></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;set_auto_trim($b)
+	<li>$db-&gt;model-&gt;set_auto_trim($b)
+	<li>$db-&gt;schema-&gt;set_auto_trim($b)
+</ul></div>
+<p>Ativa ou desativa o auto trim. Com ele ativado os espaços no final e no inicio dos valores são removidos. 
+A funcionalidade pode ser ligada para somente um módulo específico ou para somente um schema específico.</p>
+<div class=item><pre><code class="php">$db-&gt;set_auto_trim( !$db-&gt;auto_strim() );</code></pre></div>
+
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>Todas as Macros<a id=all-macros></a></h2>
+<h3>Principais</h3>
+<p>Para add, set, where, save, post, model, select. Se o parametro estiver errado
+irá gerar erro. Caso valor estiver errado ele irá retornar false e guardará um objeto Error para tratamento. </p>
+<table style=margin-right:10px><thead><tr><th>Macro</th><th>Parametros</th><th style=width:240px>Exemplo</th></tr></thead>
+	<tbody>
+		<tr><td>date          </td><td>formato (pode se especificar um formato padrão)</td><td>col:date(dd/mm/yyyy)</td></tr>
+		<tr><td>date_time     </td><td>formato (pode se especificar um formato padrão)</td>
+					<td>col:date_time(dd/mm/yyyy hh:mm)</td></tr>
+		<tr><td>time          </td><td>seconds ou milliseconds</td>
+					<td>col:time</td></tr>
+		<tr><td>integer (int) </td><td>não - se valor for numerico mas não inteiro parte fracionaria é truncada</td>
+					<td>n:int</td></tr>
+		<tr><td>float (numeric, num) </td><td>não</td><td>col:float</td></tr>
+
+		<tr><td>text          </td><td>int ou (tamanho), int-int (range), int- (tamanho mínimo)</td>
+					<td>col:text(100)</tr>
+		<tr><td>format        </td><td>regex</td>
+					<td>col:format([0-9]+[a-zA-Z])</td></tr>
+		<tr><td>serialize     </td><td>nop</td>
+					<td>col:serialize</td></tr>
+		<tr><td>sql           </td><td>3 formas de usar</td>
+					<td>col:sql( 5 + ? )</td></tr>
+		<tr><td>now           </td><td>nop</td>
+					<td>col:now</td></tr>
+		<tr><td>confirm       </td><td>nome do campo que deve ser igual a este</td>
+					<td>col:confirm(password)</td></tr>
+		
+	</tbody></table>
+<h3>WHERE</h3>
+<table style=width:690px><thead><tr><th>Macro</th><th>Operação</th><th>SQL</th></tr></thead>
+<tbody>
+	<tr><td>greater_than (gt)</td><td>Maior</td><td>col &gt; 5</td><tr>
+	<tr><td>less_than (lt)</td><td>Menor</td><td>col &lt; 5</td><tr>
+	<tr><td>greater_or_equal_than (ge)</td><td>Maior ou igual</td><td>col &gt;= 5</td><tr>
+	<tr><td>less_or_equal_than (le)</td><td>Menor ou igual</td><td>col &lt;= 5</td><tr>
+	<tr><td>equal (eq)</td><td>Igual</td><td>col = 5</td><tr>
+	<tr><td>not_equal (ne)</td><td>Diferente</td><td>col != 5</td><tr>
+	<tr><td>null</td><td>Valor é NULL (vazio)</td><td>col IS NULL</td><tr>
+	<tr><td>not_null</td><td>Valor não é NULL (vazio)</td><td>col IS NOT NULL</td><tr>
+	<tr><td>between</td><td>Valor está entre</td><td>col BETWEEN 1 AND 10</td><tr>
+	</tbody></table>
+<h3>Especial</h3>
+<h4>created_at</h4>
+<p>Coloca o valor como now se a entrada está sendo inserida. Caso use com <b>set</b> ele é desconsidaderado. 
+	Não aceita valor.
+<h4>updated_at</h4>
+<p>Coloca o valor como now se a entrada está sendo atualizado. Caso use com <b>add</b> ele é desconsidaderado. 
+	Não aceita valor.
+<h4>id</h4>
+<p>Diz que aquele campo é o id. Útil em <b>save</b>, <b>save</b> e <b>set_model</b>. Se for utilizado
+em outros métodos ele irá gerar erro.<br>
+Isso exceto esteja lidando com uma realação has many em um <b>set</b>, neste caso específica-se o
+	id da outra tabela no parametro.
+<h4>fk</h4>
+<p>Para especificar a chave estrangeira em uma relação <b>has many</b>. Pode ser usado
+em save, post, set_model, add, remove, etc.
+<h4>many</h4>
+<p>Especifica que se trata de uma relação <b>has many</b>. Caso se esteja fazendo um add, set se torna implícito 
+se o valor for um array e a macro <b>serialize</b> não estiver sendo usada.
+<h4>add</h4>
+<p>Para relações <b>has many</b>. Só se pode ser utilizado nos métodos <b>set</b> e <b>set_model</b>.
+A diferença do funcionamento padrão has many para o com esta macro é que valores que não estiverem especificados
+no set não serão removidos. Quando se tem certeza que todas as entradas que se relacionam estiverem especificadas
+esta macro é util para poupar o banco de dados uma operação <b>remove</b>
+<p>Por exemplo, se fizermos:
+<pre><code class="php">$db-&gt;user[$id] = array(
+	'name' =&gt; 'Leo',
+	'tel'  =&gt; array(
+		'5', // id = 5
+		'99', // id = 99
+		array( 'id' =&gt; 156, 'number' =&gt; 98178, 'type' =&gt; 'home' ), // updating id = 156
+		array( 'number' =&gt; 98178, 'type' =&gt; 'home' ), // new entry
+		array( 'number' =&gt; 98178, 'type' =&gt; 'home' ) // new entry
+	)
+);</code></pre>
+<p>Gerariamos SQLs assim:
+<pre><code class="sql">BEGIN;
+INSET INTO user ( name, tel ) VALUES ( 5, 99 );
+REMOVE tel WHERE id NOT IN (5,99) AND user_id = 7; -- case 7 is the inserted id
+UPDATE tel SET number = 98178, type = 'home' WHERE id = 156 AND user_id = 7;
+INSET INTO tel ( number, type, user_id ) VALUES ( 98178, 'home', 7 );
+INSET INTO tel ( number, type, user_id ) VALUES ( 98178, 'home', 7 );
+COMMIT;</code></pre>
+<p>Se no lugar usarmos <b>tel:add</b> a operação <b>REMOVE</b> seria poupada.
 
 
 
@@ -305,41 +750,58 @@ echo $a[1]['col1'];</code></pre></div>
 
 
 	</div> 
-	</div><div class="item">
-</div>
-<br style="clear: both"/>
-	</div> 
-</div> 
-<div id="sidebar" class="grid_3"> 
+	</div>
+<div id=sidebar> 
 	<ul>
-		<li style=font-weight:bold><a href=#db-class>Classe DB</a></li>
-	<li><a href="#db-select-db">select_db</a></li>
-	<li><a href="#db-insert-id">inset_id</a></li>
-	<li><a href="#db-escape">escape</a></li>
-	<li><a href="#db-set-charset">set_charset</a></li>
-	<li><a href="#db-begin">begin</a></li>
-	<li><a href="#db-commit">commit</a></li>
-	<li><a href="#db-rollback">rollback</a></li>
-	<li><a href="#db-end">end</a></li>
-	<li><a href="#db-errors">errors</a></li>
-	<li><a href="#db-db-error">db_error</a></li>
-	<li><a href="#db-db-errno">db_errno</a></li>
-	<li><a href="#db-query">query</a></li>
-	<li><a href="#db-fetch">fetch</a></li>
-	<li><a href="#db-fetch-all">fetch_all</a></li>
-	<li><a href="#db-link">link</a></li>
-
-
-
+		<li class=class style="padding-top:0 !important"><a href="#db-class">Classe DB</a></li>
+		<li><a href="#db-select-db">DB::select_db</a></li>
+		<li><a href="#db-insert-id">DB::inset_id</a></li>
+		<li><a href="#db-escape">DB::escape</a></li>
+		<li><a href="#db-set-charset">DB::set_charset</a></li>
+		<li><a href="#db-get-charset">DB::get_charset</a></li>
+		<li><a href="#db-begin">DB::begin</a></li>
+		<li><a href="#db-commit">DB::commit</a></li>
+		<li><a href="#db-rollback">DB::rollback</a></li>
+		<li><a href="#db-end">DB::end</a></li>
+		<li><a href="#db-errors">DB::errors</a></li>
+		<li><a href="#db-db-error">DB::db_error</a></li>
+		<li><a href="#db-db-errno">DB::db_errno</a></li>
+		<li><a href="#db-query">DB::query</a></li>
+		<li><a href="#db-fetch">DB::fetch</a></li>
+		<li><a href="#db-fetch-all">DB::fetch_all</a></li>
+		<li><a href="#db-link">DB::link</a></li>
+		<li class=class><a href="#model-class">Classe Model</a></li>
+		<li><a href="#model-add">Model::add</a></li>
+		<li><a href="#model-set">Model::set</a></li>
+		<li><a href="#model-remove">Model::remove</a></li>
+		<li><a href="#model-get">Model::get</a></li>
+		<li><a href="#model-find">Model::find</a></li>
+		<li><a href="#model-remove-where">Model::remove_where</a></li>
+		<li><a href="#model-get-where">Model::get_where</a></li>
+		<li><a href="#model-add-error">Model::add_error</a></li>
+		<li><a href="#model-set-where">Model::set_where</a></li>
+		<li><a href="#model-add-error">Model::add_error</a></li>
+		<li><a href="#model-save">Model::save</a></li>
+		<li><a href="#model-post">Model::post</a></li>
+		<li><a href="#model-set-model">Model::set_model</a></li>
+		<li><a href="#has-may" style=font-weight:bold>HAS MANY</a></li>
+		<li class=class><a href="#entries-class">Entries</a></li>
+		<li><a href="#entries-to-string">Entries::__toString</a></li>
+		<li class=class><a href="#schema-class">Schema</a></li>
+		<li class=class><a href="#errors-class">Errors</a></li>
+		<li><a href="#errors-get">Errors::get</a></li>
+		<li class=class><a href="#error-class">Error</a></li>
+		<li><a href="#error-type">Error::type</a></li>
+		<li><a href="#error-field">Error::field</a></li>
+		<li><a href="#error-msg">Error::msg</a></li>
+		<li>&nbsp;</li>
+		<li><a href="#auto-trim">(DB|Schema|Model)::auto_trim</a></li>
+		<li><a href="#set-auto-trim">(DB|Schema|Model)::set_auto_trim</a></li>
+		<li><a href="#all-macros">Todas as Macros</a></li>
 	</ul>
 </div> 
  </script> 
- <hr /> 
- <div id="footer" class="grid_16"> 
-	 <p> 
-	 &copy; 2010. L. Priori Organization. Powered by
-	 <a href="http://wordpress.org/">WordPress</a>. Theme design by <a href="http://wpshoppe.com/">WPShoppe</a>.
-	 </p> 
+ <div id=footer> 
  </div> 
 </div> 
 </div> 
@@ -348,6 +810,33 @@ echo $a[1]['col1'];</code></pre></div>
 <script type="text/javascript"> 
 hljs.tabReplace = '    ';
 hljs.initHighlightingOnLoad();
+
+
+var inicio = true;
+var todos = $('div.entry');
+var este = false;
+var anterior = false;
+$('#sidebar a').click(function(){
+	if( anterior )anterior.removeClass('selected');
+	este = $($(this).attr('href')).closest('div.entry');
+	console.log(este);
+	var outros = todos.not( este );
+	if( inicio ){
+		inicio = false;
+		outros.hide( 1000 );
+		este.show( 1000 );
+	}else{
+		outros.slideUp( 1000 );
+		este.slideDown( 1000 );
+	}
+	setTimeout(1000,function(){
+	window.location.href = $(this).attr('href');
+	});
+	anterior = $(this).addClass('selected');
+	return false;
+});
+
+
 </script>
 </body> 
 </html>
