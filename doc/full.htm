@@ -31,7 +31,8 @@
 		<li><b>user</b>: o usuário
 		<li><b>password</b>: a senha
 		<li><b>postgresql</b>: para uso com o PostgreSQL
-		<li><b>db</b>: base (no PostgreSQL) 
+		<li><b>db</b>: base
+		<li><strong>charset</strong>: codificação       
 	</ul>
 	<p>Valores padrão:</p>
 	<ul>
@@ -39,6 +40,7 @@
 		<li>Base padrão é <b>postgres</b>.
 		<li>Porta e outras opções padrões não são decididas pela ferramenta.
 		<li>Banco de dados padrão é MySQL
+		<li>charset, porta, etc quando não especificadas ficam por conta do socket interno ou o banco de dados
 	</ul>
 	<div class="item" style="margin-right:10px;float:left"><pre><code class="php">$db = new DB([
   'port' =&gt; 1841,
@@ -61,20 +63,18 @@ $db = new DB;</code></pre></div>
 <p>Muda para base especificada. Não funciona com PostgreSQL.</p>
 <div class="item" style=""><pre><code class="php">$db-&gt;select_db("the_name");</code></pre></div>
 
-
-
 </div><div class=entry>
-<h2 style=clear:both>DB::inset_id<a id=db-insert-id></a></h2>
+<h2 style=clear:both>DB::last_id<a id=db-last-id></a></h2>
 <div class=interface><ul>
-	<li>$db-&gt;insert_id()
+	<li>$db-&gt;last_id()
 </ul></div>
-<p>Pega o id inserido na última consulta. Somente para MySQL. Não funciona com PostgreSQL.</p>
+<p>Pega o id inserido na última consulta. </p>
 <div class="item" style="margin-right:10px"><pre><code class="php">$id = $db-&gt;inset_id();
 $sql = "INSERT INTO t(c, c2, t2_id) 
         VALUES( 1, 2, $id )";</code></pre></div>
 <div class="item" style=""><pre><code class="php">// cuidado para não cometer este erro
 $id = $db-&gt;inset_id;
-// $id está com o modelo (tabela) "insert_id"
+// $id está com o modelo (tabela) "last_id"
 </code></pre></div>
 
 
@@ -536,7 +536,7 @@ $db-&gt;d-&gt;tbl-&gt;add( ... );</code></pre></div>
 	<li>$db-&gt;errors()
 </ul></div>
 <p>Erros de validação. Diferente dos erros normais estes não são disparados com throw ou mesmo com asdf_error.
-Eles são armazenados no objeto DB depois da tentativa de executar uma operação de insert, update, etc que 
+Eles são armazenados no objeto DB depois da tentativa de executar uma operação de last, update, etc que 
 retornaram false (caso contrário iria ser retornado true).</p>
 <div class="item" style="width:auto;float:none;margin-right:10px;"><pre><code class="php">if( !$db-&gt;user-&gt;add( $a ) ){
 	echo $db-&gt;errors();
@@ -705,6 +705,23 @@ em save, post, set_model, add, remove, etc.
 <h4>many</h4>
 <p>Especifica que se trata de uma relação <b>has many</b>. Caso se esteja fazendo um add, set se torna implícito 
 se o valor for um array e a macro <b>serialize</b> não estiver sendo usada.
+<h4>select update insert insert_update</h4>
+<p>Ao especificar o modelo a macro <strong>sql </strong>não poderá ser usada, no lugar deve-se utilizar as macros <strong>select</strong>, <strong>update</strong>,  <strong>insert</strong>, <strong>insert_update</strong>. Comportamento para insert e update podem ser especificados ao mesmo tempo com <strong>insert_update</strong>.
+<p> <strong>Atenção: </strong>Se for passado <strong>update</strong> e não o <strong>insert</strong> ao se fazer um insert o modelo irá se comportar como se não houvesse a coluna. Caso se queira utilizar algum comportamento para o insert séra possível especificar  outro comportamento da coluna (atributo) separadamente. Por exemplo:
+<pre><code class="php">$db-&gt;model11-&gt;set_model(array(
+  'field:select(col1 + col2)',
+  'field:update( ? + 3)', // mesma coluna
+  'field:text(5-100)' // para o caso do insert / add
+  'field2'
+));<br>// mesma coisa seria:<br>$db-&gt;model11-&gt;set_model(array(
+  'field:select(col1 + col2):update( ? + 3)', // select e update
+  'field:text(5-100)' // para o caso do insert
+  'field2'
+));<br>// já isto funcionaria diferente:<br>$db-&gt;model11-&gt;set_model(array(
+  'field:select(col1 + col2):update( ? + 3):text(5-100)', // insert não foi definido
+  'field2'
+));
+</code></pre>
 <h4>add</h4>
 <p>Para relações <b>has many</b>. Só se pode ser utilizado nos métodos <b>set</b> e <b>set_model</b>.
 A diferença do funcionamento padrão has many para o com esta macro é que valores que não estiverem especificados
@@ -724,7 +741,7 @@ esta macro é util para poupar o banco de dados uma operação <b>remove</b>
 <p>Gerariamos SQLs assim:
 <pre><code class="sql">BEGIN;
 INSET INTO user ( name, tel ) VALUES ( 5, 99 );
-REMOVE tel WHERE id NOT IN (5,99) AND user_id = 7; -- case 7 is the inserted id
+REMOVE tel WHERE id NOT IN (5,99) AND user_id = 7; -- case 7 is the lasted id
 UPDATE tel SET number = 98178, type = 'home' WHERE id = 156 AND user_id = 7;
 INSET INTO tel ( number, type, user_id ) VALUES ( 98178, 'home', 7 );
 INSET INTO tel ( number, type, user_id ) VALUES ( 98178, 'home', 7 );
@@ -755,7 +772,7 @@ COMMIT;</code></pre>
 	<ul>
 		<li class=class style="padding-top:0 !important"><a href="#db-class">Classe DB</a></li>
 		<li><a href="#db-select-db">DB::select_db</a></li>
-		<li><a href="#db-insert-id">DB::inset_id</a></li>
+		<li><a href="#db-last-id">DB::inset_id</a></li>
 		<li><a href="#db-escape">DB::escape</a></li>
 		<li><a href="#db-set-charset">DB::set_charset</a></li>
 		<li><a href="#db-get-charset">DB::get_charset</a></li>
