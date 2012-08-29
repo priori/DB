@@ -705,7 +705,7 @@ em save, post, set_model, add, remove, etc.
 <h4>many</h4>
 <p>Especifica que se trata de uma relação <b>has many</b>. Caso se esteja fazendo um add, set se torna implícito 
 se o valor for um array e a macro <b>serialize</b> não estiver sendo usada.
-<h4>select update insert insert_update</h4>
+<h4>select update insert insert_update (idéia)</h4>
 <p>Ao especificar o modelo a macro <strong>sql </strong>não poderá ser usada, no lugar deve-se utilizar as macros <strong>select</strong>, <strong>update</strong>,  <strong>insert</strong>, <strong>insert_update</strong>. Comportamento para insert e update podem ser especificados ao mesmo tempo com <strong>insert_update</strong>.
 <p> <strong>Atenção: </strong>Se for passado <strong>update</strong> e não o <strong>insert</strong> ao se fazer um insert o modelo irá se comportar como se não houvesse a coluna. Caso se queira utilizar algum comportamento para o insert séra possível especificar  outro comportamento da coluna (atributo) separadamente. Por exemplo:
 <pre><code class="php">$db-&gt;model11-&gt;set_model(array(
