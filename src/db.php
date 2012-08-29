@@ -239,15 +239,16 @@ class DB{
 	}
 	public function select_db( $db ){
 		if( $this->mode !== DB::MYSQL and $this->mode !== DB::MYSQLI ){
-			$this->fire_error('Caso não esteja usando MySQL selecione o banco de dados ao contectar!');
-			return;
+			$this->fire_error('Caso nao esteja usando MySQL selecione o banco de dados ao contectar!');
 		}
 		$this->db_selected = $db;
 		if( $this->mode === DB::MYSQLI ){
-			$this->link->select_db($db);
+			$r = $this->link->select_db($db);
 		}else{
-			mysql_select_db($db,$this->link);
+			$r = mysql_select_db($db,$this->link);
 		}
+		if( !$r )
+			$this->fire_error('Nao foi possivel conectar a esta base!');
 	}
 
 	public function insert_id(){
