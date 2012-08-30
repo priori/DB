@@ -30,8 +30,8 @@
 		<li><b>host</b>: o host
 		<li><b>user</b>: o usuário
 		<li><b>password</b>: a senha
-		<li><b>postgresql</b>: para uso com o PostgreSQL
-		<li><b>db</b>: base
+		<li><b>driver</b>: mysql ou postgresql
+		<li><b>dbname</b>: nome da base 
 		<li><strong>charset</strong>: codificação       
 	</ul>
 	<p>Valores padrão:</p>
@@ -200,7 +200,7 @@ Não todos os erros vão para este objecto, somente os de formatação de valore
 	<li>$db-&gt;query( $sql, $a, $b, $c... )
 </ul></div>
 <p>Executa uma SQL. Os parametros podem ser passados via um <b>array</b> ou um a um como 
-	parametros normais do método. Para inserir os parametros na sql use ?.
+	parametros normais do método. Para inserir os parametros na sql use ?. [in funcionando com ? e :asdf, passando lista]
 </p>
 <div class="item" style="margin-right:10px;float:left"><pre><code class="php">$db-&gt;query('SELECT *
 FROM t
@@ -210,6 +210,10 @@ WHERE t = ? AND d &gt; ?
 FROM t
 WHERE t = ? AND d &gt; ?
 ',array(5,10));</code></pre></div>
+<div class="item" style=""><pre><code class="php">$db-&gt;query('SELECT *
+FROM t
+WHERE t = :a AND d &gt; ?
+',array('a'=&gt;5,10));</code></pre></div>
 
 
 

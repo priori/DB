@@ -59,11 +59,6 @@ class Test extends PHPUnit_Framework_TestCase {
 		// valores batem
 		$this->assertEquals( array('nome'=>'Leo','id'=>'1','casa_id'=>'0'), $r );
 	}
-
-	function test003(){
-		$r = $this->db->query('TRUNCATE pessoa');
-		$this->assertTrue( $r );
-	}
 }
  
 
