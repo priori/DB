@@ -251,7 +251,7 @@ class DB{
 			$this->fire_error('Nao foi possivel conectar a esta base!');
 	}
 
-	public function insert_id(){
+	public function last_id(){
 		if( $this->mode === DB::MYSQLI )
 			return $this->link->insert_id;
 		elseif( $this->mode === DB::MYSQLI )
