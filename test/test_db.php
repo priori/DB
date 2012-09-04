@@ -116,9 +116,10 @@ class Test extends PHPUnit_Framework_TestCase {
 	// no final há um die();
 	
 	// conexão
-	// não está testando postgresql
-	// fazer usar configurações padrões do php
-	// para user, password, host
+	// não está sendo testando postgresql
+	// não está sendo testado socket
+	//TODO: usar configurações padrões do php para user, password, host
+	//TODO: socket
 	public function test007(){
 		$u = 'root';
 		$p = '';
