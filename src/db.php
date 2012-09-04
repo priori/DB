@@ -9,10 +9,6 @@ class DB{
 
 	public $link;
 
-	private $invalid_value = 1;
-	private $db_error = 2;
-	private $lib_error = 2;
-
 	const PHP_ERROR_PARODY = 1;
 	const TRIGGER_ERROR = 2;
 	const THROW_ERROR = 4;
@@ -23,13 +19,18 @@ class DB{
 	const MYSQLI = 2;
 	const POSTGRESQL = 3;
 
-	private $debug_mode = false;
-	private $error_mode = 1;
+	private $error_mode = 4;
 	private $mode = '';
-	public $echo_queries = false;
+
+	private $echo_queries = false;
 
 	public function __set( $a, $b ){
-		if( $a === 'error_mode' ){
+		if( $a === 'echo_queries' ){
+			if( $b !== true and $b !== false  ){   
+				$this->fire_error( "echo_queries espera um valor do tipo boleano!" );   
+			}
+			$this->echo_queries = $b;
+		}elseif( $a === 'error_mode' ){
 			if( $b !== 1 and $b !== 2 and $b !== 4 ){   
 				$this->fire_error( "Modo de erro invalido!" );   
 			}
@@ -47,7 +48,8 @@ class DB{
 			$d = false;
 			foreach( $bt as $t ){
 				 // and basename($t['file']) == 'db.php' 
-				if( isset($t['class']) and ($t['class'] === 'DB' or $t['class'] === 'Model')){ // aqui esta o segredo
+				if( isset($t['class']) and ($t['class'] === 'DB' or $t['class'] === 'Model')){ 
+					// aqui esta o segredo
 					$d = $t;  
 					continue;
 				}
@@ -122,8 +124,8 @@ class DB{
 				$u = $h['user'];
 			if( isset($h['password']) )
 				$p = $h['password'];
-			if( isset($h['db']) )
-				$db = $h['db'];
+			if( isset($h['dbname']) )
+				$dbname = $h['dbname'];
 			if( isset($h['port']) )
 				$port = $h['port'];
 			if( isset($h['postgresql']) )
@@ -148,25 +150,48 @@ class DB{
 			if( isset($port) ){
 				$s[] = 'port='.$port;
 			}
-			if( isset($db) ){
-				$s[] = 'dbname='.$db;
+			if( isset($dbname) ){
+				$s[] = 'dbname='.$dbname;
 			}
 			$s = implode( ' ',$s );
 			$this->link = pg_connect($s);
 		}else{
 			$this->mode = class_exists('mysqli')? DB::MYSQLI : DB::MYSQL;
 			if( $this->mode === DB::MYSQLI ){
-				$this->link = new mysqli($h,$u,$p);
+				if( isset($port) ){
+					if( !isset($dbname) )
+						$dbname = '';
+					$this->link = new mysqli($h,$u,$p,$dbname,$port);
+				}else{
+					if( isset($dbname) )
+						$this->link = new mysqli($h,$u,$p,$dbname);
+					else
+						$this->link = new mysqli($h,$u,$p);
+				}
+				if( mysqli_connect_error() ){
+					$this->link = false;
+					$this->fire_error('Não foi possível conectar. '.$this->link->connect_error );
+				}
 			}else{
+				if( isset($port) ){
+					$h = $h.':'.$port;
+				}
 				$this->link = mysql_connect($h,$u,$p);
 			}
+			if( isset($dbname) and $dbname ){
+				if( $this->mode === DB::MYSQLI ){
+					$r = $this->link->select_db($dbname);
+				}else{
+					$r = mysql_select_db($dbname,$this->link);
+				}
+				if( !$r )
+					$this->fire_error('Nao foi possivel conectar a esta base!');
+			}
 		}
-	}
-
-
-	public function debug_mode($b)
-	{
-		$this->debug_mode = $b;
+		if( !$this->link ){
+			// ou sempre throw??
+			$this->fire_error('Nao foi possivel conectar!');
+		}
 	}
 
 	private $smart_rollback = false;
@@ -431,6 +456,22 @@ class DB{
 	}
 	public function link(){
 		return $this->link;
+	}
+	public function error_mode(){
+		return $this->error_mode;
+	}
+	public function echo_queries(){
+		return $this->echo_queries;
+	}
+
+	public function close(){
+		if( $this->mode === DB::MYSQLI ){
+			return $this->link->close();
+		}elseif( $this->mode === DB::MYSQL ){
+			return mysql_close($this->link);
+		}elseif( $this->mode === DB::POSTGRESQL ){
+			return pg_close($this->link);
+		}
 	}
 }
 // mysql_create_db(), mysql_drop_db(), mysql_list_dbs(), mysql_db_name(),

@@ -2,7 +2,8 @@ require 'rbconfig'
 
 
 def run_test()
-	file = "test/test.php"
+	# file = "test/test.php"
+	file = "test/test_db.php"
 	if (RbConfig::CONFIG['host_os'] = /mingw32/) then 
 		system('cls')
 	else

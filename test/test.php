@@ -12,8 +12,6 @@ class Test extends PHPUnit_Framework_TestCase {
 		$this->criaBase();
 	}
 
-	protected function tearDown(){ }
-
 	protected function criaBase(){
 		$this->db->query('DROP DATABASE IF EXISTS test_db_lib');
 		$this->db->query('CREATE DATABASE test_db_lib');
@@ -60,6 +58,4 @@ class Test extends PHPUnit_Framework_TestCase {
 		$this->assertEquals( array('nome'=>'Leo','id'=>'1','casa_id'=>'0'), $r );
 	}
 }
- 
-
 
