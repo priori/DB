@@ -11,7 +11,9 @@ set_error_handler('a');
 
 class Test extends PHPUnit_Framework_TestCase {
 	protected function setUp() {
-		$this->db = new DB;
+		$this->db = new DB(array(
+			'dbname' => 'test_db_lib'
+		));
 		$this->db->error_mode = DB::THROW_ERROR;
 		$this->criaBase();
 	}
@@ -19,7 +21,9 @@ class Test extends PHPUnit_Framework_TestCase {
 	protected function criaBase(){
 		$this->db->query('DROP DATABASE IF EXISTS test_db_lib');
 		$this->db->query('CREATE DATABASE test_db_lib');
-		$this->db->select_db('test_db_lib'); // use
+		$this->db->query('USE test_db_lib');
+		// $this->db->select_db('test_db_lib');
+		// $this->db->query('DROP TABLE pessoa');
 		$this->db->query('CREATE TABLE pessoa (
 			id INTEGER UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
 			casa_id INTEGER UNSIGNED NOT NULL,
@@ -201,6 +205,185 @@ class Test extends PHPUnit_Framework_TestCase {
 			$err = true;
 		}
 		$this->assertTrue($err);
+	}
+
+	// id gerado por auto increment inserido na ultima sql ou
+	// seria bom se tivéssemos null no lugar de 0 e 
+	// que funcionasse para ids não auto increments também, 
+	// mas não ocorrerá
+	public function test008(){
+		$this->db->pessoa->truncate();
+		$this->db->pessoa[] = array(
+			'nome' => 'Leo'
+		);
+		$this->assertEquals( $this->db->last_id(), 1 );
+		$this->assertTrue( is_integer($this->db->last_id()) );
+
+		$this->db->pessoa[] = array(
+			'id' => '5',
+			'nome' => 'Leo'
+		);
+		$this->assertTrue( $this->db->last_id() === 5 );
+
+		$this->db->charset = 'utf8'; 
+		$this->assertTrue( $this->db->last_id() === 0 );
+
+		$this->db->query('SELECT 1');
+		$this->assertTrue( $this->db->last_id() === 0 );
+
+		$this->db->query('USE test_db_lib');
+		$this->assertTrue( $this->db->last_id() === 0 );
+
+		$this->db->query('CREATE TABLE pessoa_id_varchar (
+			id VARCHAR(5) PRIMARY KEY,
+			casa_id INTEGER UNSIGNED NOT NULL,
+			nome TINYTEXT NOT NULL
+		)');
+		$this->assertTrue( $this->db->last_id() === 0 );
+		$this->db->pessoa_id_varchar[] = array(
+			'id' => 'aa',
+			'nome' => 'Leo'
+		);
+		$this->assertTrue( $this->db->last_id() === 0 );
+
+
+		$this->db->query('CREATE TABLE pessoa_not_auto_increment (
+			id INTEGER UNSIGNED PRIMARY KEY,
+			casa_id INTEGER UNSIGNED NOT NULL,
+			nome TINYTEXT NOT NULL
+		)');
+		$this->db->pessoa_not_auto_increment[] = array(
+			'id' => 100,
+			'nome' => 'Leo'
+		);
+		$this->assertTrue( $this->db->last_id() === 0 );
+	}
+
+	// escapando
+	// não é método publico
+	public function test009(){
+		$r;
+		$this->assertEquals( $this->db->escape($r='\''), '\\\'' );
+		$this->assertEquals( $this->db->escape($r=1),'1');
+		$this->assertEquals( $this->db->escape($r=array()),'' );
+		$this->assertEquals( $this->db->escape($r=$this->db),'' );
+		$this->assertEquals( $this->db->escape($r=$this->db->link()),'' );
+	}
+
+	// charset
+	public function test010(){
+		$this->db->charset = 'utf8';
+		$this->assertEquals( $this->db->charset(), 'utf8' );
+		$this->db->charset = 'latin1';
+		$this->assertEquals( $this->db->charset(), 'latin1' );
+		$this->db->charset = 'UTF8';
+		$this->assertEquals( $this->db->charset(), 'utf8' );
+		$err = false;
+		try{
+			$this->db->charset = 'uaaaaaaaaatf8';
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+		$this->assertEquals( $this->db->charset(), 'utf8' );
+		// Nada disso muda a codificação:
+		// $this->db->query('set names \'latin1\'');
+		// $this->db->query('set character set \'latin1\'');
+		// $this->db->query("SET character_set_results = 'latin1', 
+		// 	character_set_client = 'latin1', 
+		// 	character_set_connection = 'latin1', 
+		// 	character_set_database = 'latin1', 
+		// 	character_set_server = 'latin1'");
+		// $this->assertEquals( $this->db->charset(), 'latin1' );
+	}
+
+	// não importa se não existe a tabela
+	// ao tentar acessar o modelo não se deve
+	// perguntar ao banco de dados por informações desnecessárias
+	public function test011(){
+		$this->assertTrue( is_object($this->db->aaaaaaaaa) );
+		$this->assertEquals( ''.$this->db->aaaaaa, '`aaaaaa`' );
+		$err = false;
+		try{
+			$this->db->aa[] = array();
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+		$this->db->pessoa->truncate();
+		$this->db->pessoa[] = array('nome'=>'Leo');
+		$db = $this->db;
+		$pessoas = $this->db->query("SELECT * FROM $db->pessoa");
+		$this->assertEquals( 1, count($pessoas) );
+	}
+
+	// transações
+	public function test012(){
+		$this->db->pessoa->truncate();
+
+		// transaction 1
+		$this->db->begin();
+		$this->db->pessoa[] = array('nome'=>'a');
+		$this->db->pessoa[] = array('nome'=>'b');
+		$this->assertEquals( 2, count( $this->db->pessoa->all() ) );
+		unset( $this->db->pessoa[1] );
+		$this->assertEquals( 1, count( $this->db->pessoa->all() ) );
+		$this->db->rollback();
+		$this->assertEquals( 0, count( $this->db->pessoa->all() ) );
+		
+		// mysql nao gera erro
+		$err = false;
+		try{
+			$this->db->rollback();
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertFalse( $err );
+
+		// easy transaction
+		$db = $this->db;
+		$db->begin(true);
+		$this->db->pessoa[] = array('nome'=>'a');
+		$db->begin(true);
+		$this->db->pessoa[] = array('nome'=>'a');
+		$db->begin(true);
+		$this->db->pessoa[] = array('nome'=>'a');
+		$this->assertEquals( 3, count( $this->db->pessoa->all() ) );
+		$db->end();
+		$this->assertEquals( 3, count( $this->db->pessoa->all() ) );
+		$db->end();
+		$this->assertEquals( 3, count( $this->db->pessoa->all() ) );
+		$this->db->pessoa[] = array('n'=>'a');
+		$db->end();
+		$this->assertEquals( 0, count( $this->db->pessoa->all() ) );
+
+		// easy transaction2
+		$db = $this->db;
+		$db->begin(true);
+		$this->db->pessoa[] = array('nome'=>'a');
+		$db->begin(true);
+		$this->db->pessoa[] = array('nome'=>'a');
+		$db->begin(true);
+		$this->db->pessoa[] = array('nome'=>'a');
+		$this->assertEquals( 3, count( $this->db->pessoa->all() ) );
+		$db->end();
+		$this->db->pessoa[] = array('n'=>'a');
+		$this->assertEquals( 3, count( $this->db->pessoa->all() ) );
+		$db->end();
+		$this->db->pessoa[] = array('nome'=>'a');
+		$this->assertEquals( 4, count( $this->db->pessoa->all() ) );
+		$db->end();
+		$this->assertEquals( 0, count( $this->db->pessoa->all() ) );
+
+
+		// gera erro
+		$err = false;
+		try{
+			$db->end();
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
 	}
 }
 

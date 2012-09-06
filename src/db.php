@@ -35,6 +35,15 @@ class DB{
 				$this->fire_error( "Modo de erro invalido!" );   
 			}
 			$this->error_mode = $b;
+		}elseif( $a === 'charset' ){
+			if( $this->mode === DB::POSTGRESQL ) //TODO pg_setclientencoding
+				$r = pg_set_client_encoding( $this->link, $b );
+			elseif( $this->mode === DB::MYSQLI )
+				$r = $this->link->set_charset( $b );
+			elseif( $this->mode === DB::MYSQL )
+				$r = mysql_set_charset( $b, $this->link );
+			if( !$r )
+				$this->fire_error('Não foi possível selecionar esta codificação!');
 		}else{
 			$this->fire_error( "Tentativa de setar attributos somente leitura ".
 				"(use o metodo set_module caso queira configurar modelos)" );
@@ -117,6 +126,10 @@ class DB{
 	}
 
 	// Construtor
+	// Padrão é 
+	// mysql host:localhost user:root password:'' 
+	// postgres host:localhost user:postgres dbname:postgres
+	// todo formas de especificar socket
 	public function __construct($h='localhost',$u='root',$p='')
 	{
 		if( is_array( $h ) ){
@@ -128,15 +141,25 @@ class DB{
 				$dbname = $h['dbname'];
 			if( isset($h['port']) )
 				$port = $h['port'];
-			if( isset($h['postgresql']) )
-				$postgresql = $h['postgresql'];
 			if( isset($h['host']) )
 				$h = $h['host'];
 			else
-				unset($h);
+				$h = 'localhost';
+			if( isset($h['socket']) ){
+				if( $h['socket'] == 'postgresql' ){
+					$postgresql = true;
+				}elseif( $h['socket'] != 'mysql' ){
+					$this->fire_error('Socket desconhecido');
+				}
+			}
+			$u = false;
 		}
 		if( isset($postgresql) and $postgresql ){
 			$this->mode = DB::POSTGRESQL;
+			if( !$u )
+				$u = 'postgres';
+			if( !$dbname )
+				$dbname = 'postgres';
 			$s = array();
 			if( $h ){
 				$s[] = 'host='.$h;
@@ -156,6 +179,10 @@ class DB{
 			$s = implode( ' ',$s );
 			$this->link = pg_connect($s);
 		}else{
+			if( !$u )
+				$u = 'root';
+			if( !$p )
+				$p = '';
 			$this->mode = class_exists('mysqli')? DB::MYSQLI : DB::MYSQL;
 			if( $this->mode === DB::MYSQLI ){
 				if( isset($port) ){
@@ -163,29 +190,30 @@ class DB{
 						$dbname = '';
 					$this->link = new mysqli($h,$u,$p,$dbname,$port);
 				}else{
-					if( isset($dbname) )
+					if( isset($dbname) ){
 						$this->link = new mysqli($h,$u,$p,$dbname);
-					else
+					}else
 						$this->link = new mysqli($h,$u,$p);
 				}
 				if( mysqli_connect_error() ){
 					$this->link = false;
 					$this->fire_error('Não foi possível conectar. '.$this->link->connect_error );
 				}
+				if( isset($dbname) and $dbname ){
+					$r = $this->link->select_db($dbname);
+					if( !$r )
+						$this->fire_error('Nao foi possivel conectar a esta base!');
+				}
 			}else{
 				if( isset($port) ){
 					$h = $h.':'.$port;
 				}
 				$this->link = mysql_connect($h,$u,$p);
-			}
-			if( isset($dbname) and $dbname ){
-				if( $this->mode === DB::MYSQLI ){
-					$r = $this->link->select_db($dbname);
-				}else{
+				if( isset($dbname) and $dbname ){
 					$r = mysql_select_db($dbname,$this->link);
+					if( !$r )
+						$this->fire_error('Nao foi possivel conectar a esta base!');
 				}
-				if( !$r )
-					$this->fire_error('Nao foi possivel conectar a esta base!');
 			}
 		}
 		if( !$this->link ){
@@ -199,6 +227,7 @@ class DB{
 	public function _query( $q ){
 		return $this->__query( $q );
 	}
+	private $last_return;
 	public function __query( &$q ){
 
 		// lidando com as transactions
@@ -209,9 +238,11 @@ class DB{
 		}else if( $this->_has_validation_error ){
 			if( $this->_first_query_with_error ){
 				$this->_first_query_with_error = false;
+				$this->last_return = false;
 				return false;
 			}
 			if( $this->transaction_count ){
+				$this->last_return = false;
 				return false;
 			}
 			$this->_has_validation_error = false;
@@ -250,73 +281,77 @@ class DB{
 			}
 			$this->_query('ROLLBACK');
 			$this->smart_rollback = true;
+			$this->last_return = false;
 			return false;
 		}
 
 		if( $err ){
 			$this->fire_error( "<strong>The data base return an error: </strong>".
 				$this->db_error() );
+			$this->last_return = false;
 			return false;
 		}
-		if( $r === true )
+		if( $r === true ){
+			$this->last_return = true;
 			return true;
+		}
+		$this->last_return = 2;
 		return new DB_Result( $r, $this->link, $this->mode );
 	}
-	public function select_db( $db ){
-		if( $this->mode !== DB::MYSQL and $this->mode !== DB::MYSQLI ){
-			$this->fire_error('Caso nao esteja usando MySQL selecione o banco de dados ao contectar!');
-		}
-		$this->db_selected = $db;
-		if( $this->mode === DB::MYSQLI ){
-			$r = $this->link->select_db($db);
-		}else{
-			$r = mysql_select_db($db,$this->link);
-		}
-		if( !$r )
-			$this->fire_error('Nao foi possivel conectar a esta base!');
-	}
+	// caso se esteja usando mysql ainda é possível fazer isso via SQL
+	// usando: USE databasename
+	// public function select_db( $db ){
+	// 	if( $this->mode !== DB::MYSQL and $this->mode !== DB::MYSQLI ){
+	// 		$this->fire_error('Caso nao esteja usando MySQL selecione o banco de dados ao contectar!');
+	// 	}
+	// 	$this->db_selected = $db;
+	// 	if( $this->mode === DB::MYSQLI ){
+	// 		$r = $this->link->select_db($db);
+	// 	}else{
+	// 		$r = mysql_select_db($db,$this->link);
+	// 	}
+	// 	if( !$r )
+	// 		$this->fire_error('Nao foi possivel conectar a esta base!');
+	// }
 
 	public function last_id(){
-		if( $this->mode === DB::MYSQLI )
-			return $this->link->insert_id;
-		elseif( $this->mode === DB::MYSQLI )
-			return mysql_insert_id($this->link);
-		elseif( $this->mode === DB::POSTGRESQL )
+		if( $this->mode === DB::POSTGRESQL ){
 			$this->fire_error("PostgreSQL não funciona assim!");
+		}else{ //if( $this->last_return === true ){
+			if( $this->mode === DB::MYSQLI ){
+				return $this->link->insert_id;
+			}elseif( $this->mode === DB::MYSQL )
+				return mysql_insert_id($this->link);
+		}
 	}
+	// todo renomear para _escape
 	public function escape(&$s){
-		// if( is_array($s) )var_dump($s);
 		if( $this->mode === DB::MYSQLI ){
 			return $this->link->real_escape_string($s);
 		}elseif( $this->mode === DB::MYSQL ){
 			return mysql_real_escape_string($s,$this->link);
 		}elseif( $this->mode === DB::POSTGRESQL ){
 			if( is_int($s) or is_float($s) ){
-				return $s;
+				return ''.$s;
 			}else{
 				return pg_escape_string( $this->link, $s );
 			}
 		}
 	}
-	public function set_charset($c){
-		if( $this->mode === DB::POSTGRESQL ){ //TODO pg_setclientencoding
-			return pg_set_client_encoding( $this->link, $c );
-		}
-		if( $this->mode === DB::MYSQLI )
-			return $this->link->set_charset( $c );
-		elseif( $this->mode === DB::MYSQL )
-		return mysql_set_charset( $c, $this->link );
-	}
-	public function get_charset(){
-		if( $this->mode === DB::POSTGRESQL ){ //TODO pg_setclientencoding
+	// e o collation???
+	public function charset(){
+		if( $this->mode === DB::POSTGRESQL ) 
 			return pg_client_encoding( $this->link );
+		if( $this->mode === DB::MYSQLI ){
+			$r = $this->link->get_charset();
+			if( $r )
+				return $r->charset;
 		}
-		if( $this->mode === DB::MYSQLI )
-			return $this->link->get_charset( $c );
-		elseif( $this->mode === DB::MYSQL )
-		return mysql_encoding( $c, $this->link );
+		if( $this->mode === DB::MYSQL )
+			return mysql_encoding( $c, $this->link );
 	}
 
+	// ou schema
 	private $models = array();
 	public function __get($n){
 		if( $this->mode == DB::POSTGRESQL ){
@@ -351,16 +386,17 @@ class DB{
 		if( $b === true ){
 			$this->transaction_count--;
 			if( !$this->transaction_count ){
-				if( $this->smart_rollback or 
-					$this->_has_validation_error ){
-				$this->smart_rollback = false;
-				$this->_query('ROLLBACK');
-			}else{
+				if( $this->smart_rollback or $this->_has_validation_error ){
+					$this->smart_rollback = false;
+					$this->_query('ROLLBACK');
+				}else{
 					return $this->_query('COMMIT');
 				}
 			}
-			if( $this->transaction_count<0 )
-				die('commit fora de transaction');
+			if( $this->transaction_count<0 ){
+				$this->transaction_count = 0;
+				$this->fire_error('commit fora de transaction');
+			}
 		}else{
 			return $this->_query('COMMIT');
 		}
@@ -473,10 +509,6 @@ class DB{
 			return pg_close($this->link);
 		}
 	}
+	// list_processes(), thread_id(), stat()
 }
-// mysql_create_db(), mysql_drop_db(), mysql_list_dbs(), mysql_db_name(),
-// mysql_list_fields(), mysql_list_processes(), mysql_list_tables(),
-// mysql_db_query(),mysql_table_name()
-
-
 

@@ -335,6 +335,11 @@ class Model implements arrayaccess{
 		return $r->fetch();
 	}
 
+	public function all(){
+		$t = $this->__toString();
+		return $this->db->_query("SELECT * FROM $t");
+	}
+
 
 	function sql_where( &$q, &$w ){
 		include 'sql_where.php';
@@ -439,7 +444,7 @@ class Model implements arrayaccess{
 	}
 	private function sql_where_id_eq( &$q, &$id ){
 		if( is_array($this->pk) ){
-			$this->db->fire_error( 'falta implementar...' );
+			$this->db->fire_error('falta implementar...');
 		}else{
 			if( is_array($id) or is_object($id) or is_resource($id) ){
 				$this->db->fire_error("Valor inválido para id!");
