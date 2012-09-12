@@ -141,10 +141,6 @@ class DB{
 				$dbname = $h['dbname'];
 			if( isset($h['port']) )
 				$port = $h['port'];
-			if( isset($h['host']) )
-				$h = $h['host'];
-			else
-				$h = 'localhost';
 			if( isset($h['socket']) ){
 				if( $h['socket'] == 'postgresql' ){
 					$postgresql = true;
@@ -152,6 +148,10 @@ class DB{
 					$this->fire_error('Socket desconhecido');
 				}
 			}
+			if( isset($h['host']) )
+				$h = $h['host'];
+			else
+				$h = 'localhost';
 			$u = false;
 		}
 		if( isset($postgresql) and $postgresql ){
@@ -197,7 +197,7 @@ class DB{
 				}
 				if( mysqli_connect_error() ){
 					$this->link = false;
-					$this->fire_error('Não foi possível conectar. '.$this->link->connect_error );
+					$this->fire_error('Não foi possível conectar. '.mysqli_connect_error() );
 				}
 				if( isset($dbname) and $dbname ){
 					$r = $this->link->select_db($dbname);
