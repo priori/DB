@@ -187,7 +187,7 @@ class DB{
 			if( $this->mode === DB::MYSQLI ){
 				if( isset($port) ){
 					if( !isset($dbname) )
-						$dbname = '';
+						$dbname = null;
 					$this->link = new mysqli($h,$u,$p,$dbname,$port);
 				}else{
 					if( isset($dbname) ){

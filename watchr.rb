@@ -4,16 +4,15 @@ require 'rbconfig'
 def run_test()
 	# file = "test/test.php"
 	file = "test/test_db.php"
-	if (RbConfig::CONFIG['host_os'] = /mingw32/) then 
-		system('cls')
-	else
-		if (RbConfig::CONFIG['host_os'] =~ /cygwin/) then 
-			puts "--------------------------"
+	#if (RbConfig::CONFIG['host_os'] = /mingw32/) then 
+	#	system('cls')
+	#else
+	#	if (RbConfig::CONFIG['host_os'] =~ /cygwin/) then 
 			system('clear')
-		else
-			 puts "\e[H\e[2J"
-		end
-	end
+	#	else
+	#		 puts "\e[H\e[2J"
+	#	end
+	#end
 	puts "Running #{file}"
 	result = `phpunit ./#{file}`
 	puts result
