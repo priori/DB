@@ -94,21 +94,44 @@ WHERE c = \''.$val.'\'';</code></pre></div>
 
 
 </div><div class=entry>
-<h2 style=clear:both>DB::set_charset<a id=db-set-charset></a></h2>
+<h2 style=clear:both>DB::charset<a id=db-charset></a></h2>
 <div class=interface><ul>
-	<li>$db-&gt;set_charset( $charset )
+	<li>$db-&gt;charset = $charset
+	<li>$charset = $db-&gt;charset()
 </ul></div>
-<p>Especifica a cofigicação com que a conexão irá trabalhar.</p>
-<div class="item" style=""><pre><code class="php">$val = $db-&gt;set_charset( 'LATIN1');</code></pre></div>
+<p>Especifica a cofigicação com que a conexão irá trabalhar ou pega a que está sendo usada.</p>
+<div class="item" style=""><pre><code class="php">$val = $db-&gt;charset = 'LATIN1';
+if( $db-&gt;charset() == 'latin1' )
+	echo 'ok!';</code></pre></div>
 
 
 </div><div class=entry>
-<h2 style=clear:both>DB::get_charset<a id=db-get-charset></a></h2>
+<h2 style=clear:both>DB::echo_queries<a id=db-echo_queries></a></h2>
 <div class=interface><ul>
-	<li>$db-&gt;get_charset()
+	<li>$db-&gt;echo_mode = true | DB::PLAIN_TEXT
+	<li>$error_mode = $db-&gt;echo_mode()
 </ul></div>
-<p>Especifica a cofigicação com que a conexão irá trabalhar.</p>
-<div class="item" style=""><pre><code class="php">$val = $db-&gt;set_charset( 'LATIN1');</code></pre></div>
+<p>Setando como true todas as queries executadas serão impressas na tela (Algumas queries usadas pelo socket interno podem serem desconsideradas).
+Também se pode setar a propriedade utilizando a constante DB::PLAIN_TEXT (para não se escapar caracteres html).
+</p>
+<div class="item" style=""><pre><code class="php">$val = $db-&gt;echo_mode = true;
+$db-&gt;a[] = array('b'=&gt;'b');
+// INSERT INTO a (b) VALUES 'b'</code></pre></div>
+
+
+</div><div class=entry>
+<h2 style=clear:both>DB::error_mode<a id=db-error_mode></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;error_mode = DB::PHP_ERROR_PARODY | DB::TRIGGER_ERROR | DB::THROW_ERROR
+	<li>$error_mode = $db-&gt;error_mode()
+</ul></div>
+<p>Diz como o que acontecerá com os erros. Por padrão eles serão disparados com trow. Mas os erros podem 
+serem disparados com trigger_error (a unica forma que era possível antes do suporte a trow). Ou também
+podem funcionar de forma similar aos erros internos, mostrando a linha, a mensagem de erro e o arquivo
+onde aconteceu o erro (não o arquivo e alinha da biblioteca, mas da aplicação que usa da biblioteca).
+</p>
+<div class="item" style=""><pre><code class="php">$db-&gt;charset = DB::PHP_ERROR_PARODY;
+$db-&gt;asdfasdf = 5; // Erro mensagem blabla, linha esta linha, arquivo este arquivo.php</code></pre></div>
 
 
 
@@ -245,6 +268,19 @@ echo $a[0]['col1'];
 echo '&lt;hr&gt;';
 </div><div class=entry>
 echo $a[1]['col1'];</code></pre></div>
+
+
+
+</div><div class=entry>
+<h2 style=clear:both>DB::fetch_col<a id=db-fetch-col></a></h2>
+<div class=interface><ul>
+	<li>$db-&gt;fetch_col( $sql )
+	<li>$db-&gt;fetch_col( $sql, $params_array )
+	<li>$db-&gt;fetch_col( $sql, $a, $b, $c... )
+</ul></div>
+<p>Similar a <b>query</b>, mas retorna somente a primeira coluna da primeira linha do resultado.</p>
+<div class="item" style=""><pre><code class="php">$count = $db-&gt;fetch_col('SELECT count(*) FROM t');
+echo "$count linha(s) na tabela t";</code></pre></div>
 
 
 
@@ -778,8 +814,9 @@ COMMIT;</code></pre>
 		<li><a href="#db-select-db">DB::select_db</a></li>
 		<li><a href="#db-last-id">DB::inset_id</a></li>
 		<li><a href="#db-escape">DB::escape</a></li>
-		<li><a href="#db-set-charset">DB::set_charset</a></li>
-		<li><a href="#db-get-charset">DB::get_charset</a></li>
+		<li><a href="#db-charset">DB::charset</a></li>
+		<li><a href="#db-error_mode">DB::error_mode</a></li>
+		<li><a href="#db-echo_queries">DB::echo_queries</a></li>
 		<li><a href="#db-begin">DB::begin</a></li>
 		<li><a href="#db-commit">DB::commit</a></li>
 		<li><a href="#db-rollback">DB::rollback</a></li>
@@ -790,6 +827,7 @@ COMMIT;</code></pre>
 		<li><a href="#db-query">DB::query</a></li>
 		<li><a href="#db-fetch">DB::fetch</a></li>
 		<li><a href="#db-fetch-all">DB::fetch_all</a></li>
+		<li><a href="#db-fetch-col">DB::fetch_col</a></li>
 		<li><a href="#db-link">DB::link</a></li>
 		<li class=class><a href="#model-class">Classe Model</a></li>
 		<li><a href="#model-add">Model::add</a></li>

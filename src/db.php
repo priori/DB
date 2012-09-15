@@ -19,6 +19,8 @@ class DB{
 	const MYSQLI = 2;
 	const POSTGRESQL = 3;
 
+	const PLAIN_TEXT = -1;
+
 	private $error_mode = 4;
 	private $mode = '';
 
@@ -26,7 +28,7 @@ class DB{
 
 	public function __set( $a, $b ){
 		if( $a === 'echo_queries' ){
-			if( $b !== true and $b !== false  ){   
+			if( $b !== true and $b !== false and $b !== DB::PLAIN_TEXT ){   
 				$this->fire_error( "echo_queries espera um valor do tipo boleano!" );   
 			}
 			$this->echo_queries = $b;
@@ -253,7 +255,10 @@ class DB{
 			$this->validation_errors = false;
 		}
 		if( $this->echo_queries ){
-			echo strtr($q,array('>'=>'&gt;','<'=>'&lt;','&'=>'&amp;')).'<br/>';
+			if( $this->echo_queries === DB::PLAIN_TEXT )
+				echo $q;
+			else
+				echo strtr($q,array('>'=>'&gt;','<'=>'&lt;','&'=>'&amp;')).'<br/>';
 		}
 		if( $this->mode === DB::POSTGRESQL ){
 			$r = pg_query( $this->link, $q );
@@ -324,8 +329,10 @@ class DB{
 				return mysql_insert_id($this->link);
 		}
 	}
-	// todo renomear para _escape
-	public function escape(&$s){
+	public function escape($s){
+		return $this->_escape( $s );
+	}
+	public function _escape(&$s){
 		if( $this->mode === DB::MYSQLI ){
 			return $this->link->real_escape_string($s);
 		}elseif( $this->mode === DB::MYSQL ){
@@ -376,7 +383,11 @@ class DB{
 			$this->transaction_count++;
 			return $r;
 		}else{
-			return $this->_query('BEGIN');
+			if( $this->transaction_count ){
+				$this->fire_error("Não se pode usar transações normais com easy transaction");
+			}else{
+				return $this->_query('BEGIN');
+			}
 		}
 	}
 	public function rollback(){
@@ -398,11 +409,18 @@ class DB{
 				$this->fire_error('commit fora de transaction');
 			}
 		}else{
-			return $this->_query('COMMIT');
+			if( $this->transaction_count ){
+				$this->fire_error("Não se pode usar commit normal com easy transaction. Use DB::end() no lugar!");
+			}else{
+				return $this->_query('COMMIT');
+			}
 		}
 	}
 	public function end(){
 		return $this->commit(true);
+	}
+	public function dead_transaction(){
+		return !!($this->transaction_count and ($this->smart_rollback or $this->_has_validation_error));
 	}
 
 
@@ -482,13 +500,21 @@ class DB{
 		return $r->fetch();
 	}
 
-	public function fetchAll(){
+	public function fetch_all(){
 		$r = $this->query(func_get_args());
 		$a = array();
 		while( $aux = $r->fetch() ){
 			$a[] = $aux;
 		}
 		return $a;
+	}
+	public function fetch_col(){
+		$r = $this->query(func_get_args());
+		while( $aux = $r->fetch() ){
+			foreach( $aux as $v ){
+				return $v;
+			}
+		}
 	}
 	public function link(){
 		return $this->link;

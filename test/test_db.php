@@ -333,8 +333,10 @@ class Test extends PHPUnit_Framework_TestCase {
 		$this->assertEquals( 1, count( $this->db->pessoa->all() ) );
 		$this->db->rollback();
 		$this->assertEquals( 0, count( $this->db->pessoa->all() ) );
+
 		
 		// mysql nao gera erro
+		// fazer o que né?
 		$err = false;
 		try{
 			$this->db->rollback();
@@ -361,6 +363,7 @@ class Test extends PHPUnit_Framework_TestCase {
 		$this->assertEquals( 0, count( $this->db->pessoa->all() ) );
 
 		// easy transaction2
+		// transaction dead
 		$db = $this->db;
 		$this->db->pessoa[] = array('nome'=>'a');
 		$db->begin(true);
@@ -371,23 +374,18 @@ class Test extends PHPUnit_Framework_TestCase {
 		$this->db->pessoa[] = array('nome'=>'a');
 		$this->assertEquals( 4, count( $this->db->pessoa->all() ) );
 		$db->end();
+		$this->assertFalse( $db->dead_transaction() );
 		$this->db->pessoa[] = array('n'=>'a');
-		// $this->assertEquals( 1, count( $this->db->pessoa->all() ) );
-		// $db->end();
-		// $this->db->pessoa[] = array('nome'=>'a');
-		// $this->assertEquals( 4, count( $this->db->pessoa->all() ) );
-		// $db->end();
-		// $this->assertEquals( 0, count( $this->db->pessoa->all() ) );
+		$this->assertTrue( $db->dead_transaction() );
+		$this->assertEquals( 1, count( $this->db->pessoa->all() ) );
+		$db->end();
+		$this->db->pessoa[] = array('nome'=>'a');
+		$this->assertTrue( $db->dead_transaction() );
+		$this->assertEquals( 1, count( $this->db->pessoa->all() ) );
+		$db->end();
+		$this->assertFalse( $db->dead_transaction() );
+		$this->assertEquals( 1, count( $this->db->pessoa->all() ) );
 
-
-		// gera erro
-		// $err = false;
-		// try{
-		// 	$db->end();
-		// }catch( Exception $e ){
-		// 	$err = true;
-		// }
-		// $this->assertTrue( $err );
 	}
 }
 

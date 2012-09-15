@@ -17,7 +17,8 @@ class Model implements arrayaccess{
 		$this->db =& $link;
 		$this->alias =& $name;
 		$this->schema =& $schema;
-		$this->name = $link->escape( $name ); // only variable should be assigned by reference
+		// only variable should be assigned by reference
+		$this->name = $link->_escape( $name ); 
 		$this->args =& $args;
 		if( $mode === DB::POSTGRESQL ){
 			$this->a = '"';
@@ -33,6 +34,9 @@ class Model implements arrayaccess{
 			return $this->a.$this->schema.$this->b.'.'.$this->a.$this->name.$this->b;
 		else
 			return $this->a.$this->name.$this->b;
+	}
+	public function pk(){
+		return $this->pk;
 	}
 
 	// set, update
@@ -67,7 +71,7 @@ class Model implements arrayaccess{
 				$b = true;
 			}
 			$q[] = $this->a;
-			$q[] = $this->db->escape($name);
+			$q[] = $this->db->_escape($name);
 			$q[] = $this->b;
 			$q[] = ' = ';
 			if( isset($attr['content']) ){ // ponteiro
@@ -209,7 +213,7 @@ class Model implements arrayaccess{
 					else
 						$b = true;
 					$q[] = $this->a;
-					$q[] = $this->db->escape($name);
+					$q[] = $this->db->_escape($name);
 					$q[] = $this->b;
 
 					$entries[$entries_count][$name] = $attr; // tinha um & antes
@@ -237,7 +241,7 @@ class Model implements arrayaccess{
 			$q[] = $b['content'];
 		}elseif( isset($b['serialize']) ){
 			$q[] = '\'';
-			$q[] = $this->db->escape(serialize($b['content']));
+			$q[] = $this->db->_escape(serialize($b['content']));
 			$q[] = '\'';
 		}elseif( isset($b['sql']) ){
 			$q[] = $b['content'];
@@ -247,7 +251,7 @@ class Model implements arrayaccess{
 				$q[] = $c;
 			}else{
 				$q[] = '\'';
-				$q[] = $this->db->escape($c);
+				$q[] = $this->db->_escape($c);
 				$q[] = '\'';
 			}
 		}
@@ -454,7 +458,7 @@ class Model implements arrayaccess{
 			$q[] = $this->pk;
 			$q[] = $this->b;
 			$q[] = ' = \'';
-			$q[] = $this->db->escape($id);
+			$q[] = $this->db->_escape($id);
 			$q[] = '\'';
 		}
 	}
@@ -509,7 +513,7 @@ class Model implements arrayaccess{
 			if( !is_string($b) ){
 				$this->db->fire_error('Valor inválido para pk (primary key)!');
 			}
-			$this->pk = $this->db->escape(trim($b));
+			$this->pk = $this->db->_escape(trim($b));
 		}else{
 			$this->db->fire_error('Atributo '.$a.' não editavel');
 		}
