@@ -7,6 +7,7 @@ class Model implements arrayaccess{
 	private $alias; // model name
 	private $name; // table scaped name
 	private $pk = 'id';
+	private $pkt = array('id' => true );
 	private $mode;
 	private $a;
 	private $b;
@@ -42,12 +43,49 @@ class Model implements arrayaccess{
 	// set, update
 	public function set( $id, $args ){
 		$args = Decoder::decode_array( $args );
-		if( is_array($id) or is_object($id) ){
-			// para evitar xss
-			$this->db->fire_error("Invalid arguments. Id can't be a array/object.");
+		if( is_array($id) ){
+			$id =& $this->build_id( $id );
+			// return $this->_set_where( $id, $args );
+		}
+		if( is_object($id) or is_resource($id) ){
+			$this->db->fire_error("Invalid arguments. Id can't be a object.");
 		}
 		return $this->_set( $id, $args );
 	}
+
+	// se id é array já deve ter sido testado
+	private function build_id( &$id ){
+		if( count($this->pkt) != count($id) )
+			$this->db->fire_error('Id inválido! '.
+				'Quantidade valores especificados para o id não bate com a quantidade de '.
+				'colunas da chave primária. ');
+		$pk = array();
+		$falta = array();
+		foreach( $this->pkt as $c => $v ){
+			if( isset($id[$c]) ){
+				$pk[$c] = $id[$c];
+			}else{
+				$falta[] = $c;
+			}
+		}
+		$c2 = 0;
+		foreach( $id as $c => $v ){
+			if( is_string($c) ){
+				if( !isset($this->pkt[$c]) ){
+					$this->db->fire_error('Coluna <strong>'.$c.'<strong> não faz parte da chave primária.');
+				}elseif( is_int($c) ){
+					$pk[ $falta[$c2] ] = $v;
+					$c2++;
+				}else{
+					$this->db->fire_error('Id inválido! Indices devem ser string ou inteiro.');
+				}
+			}
+			// todo 
+		}
+		return $pk;
+	}
+
+
 	public function _set(&$id, &$attrs){
 		$n = array();
 		$q = array();
@@ -84,7 +122,11 @@ class Model implements arrayaccess{
 		}
 		$b = false;
 		$aux = array();
-		$this->sql_where_id_eq($q, $id);
+		if( is_array( $id ) ){
+			$this->sql_where( $q, $id );
+		}else{
+			$this->sql_where_id_eq( $q, $id);
+		}
 		return $this->db->_query(implode('',$q));
 	}
 
@@ -506,14 +548,23 @@ class Model implements arrayaccess{
 		return $this->db->_query("TRUNCATE $t");
 	}
 	public function __set( $a, $b ){
-		if( $a == 'pk' ){
+		if( $a === 'pk' ){
 			if( is_array($b) ){
-				$this->db->fire_error( 'falta implementar...' );
+				$pkt = array();
+				foreach( $b as $c => $v ){
+					if( !is_int($c) or !is_string($v) )
+						$this->db->fire_error('Valor inválido para coluna chave primaria. '.
+								'Parametro deve ser uma string ou um array de string com chaves numéricas!');
+					$pkt[$v] = true;
+				}
+				$this->pk = $this->db->_escape(trim($b));
+				$this->pkt = $pkt;
 			}
 			if( !is_string($b) ){
 				$this->db->fire_error('Valor inválido para pk (primary key)!');
 			}
-			$this->pk = $this->db->_escape(trim($b));
+			$this->pk = $this->db->_escape($b);
+			$this->pkt = array($b=>true);
 		}else{
 			$this->db->fire_error('Atributo '.$a.' não editavel');
 		}

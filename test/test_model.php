@@ -123,7 +123,7 @@ class Test extends PHPUnit_Framework_TestCase {
 		// invalido tipo para id
 		$err = false;
 		try{
-			$db->pessoa->set( array(0), array('nome'=>'Leo modificado') );
+			$db->pessoa->set( array(0,1), array('nome'=>'Leo modificado') );
 		}catch( Exception $e ){
 			$err = true;
 		}
