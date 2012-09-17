@@ -135,9 +135,8 @@ class DB{
 	public function __construct($h='localhost',$u='root',$p='')
 	{
 		static $alowed_args = array(
-			'user' => true, 'password' => true,
-			'dbname' => true, 'port' => true,
-			'socket' => true
+			'host' => true, 'user' => true, 'password' => true,
+			'dbname' => true, 'port' => true, 'socket' => true
 		);
 		if( is_array( $h ) ){
 			foreach( $h as $c => $v ){
