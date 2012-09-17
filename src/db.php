@@ -159,7 +159,7 @@ class DB{
 				if( $h['socket'] == 'postgresql' ){
 					$postgresql = true;
 				}elseif( $h['socket'] != 'mysql' ){
-					$this->fire_error('Socket desconhecido');
+					$this->fire_error('Socket '.$h['socket'].' desconhecido.');
 				}
 			}
 			if( isset($h['host']) )
