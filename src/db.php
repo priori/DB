@@ -38,9 +38,10 @@ class DB{
 			}
 			$this->error_mode = $b;
 		}elseif( $a === 'charset' ){
-			if( $this->mode === DB::POSTGRESQL ) //TODO pg_setclientencoding
+			if( $this->mode === DB::POSTGRESQL ){ //TODO pg_setclientencoding
 				$r = pg_set_client_encoding( $this->link, $b );
-			elseif( $this->mode === DB::MYSQLI )
+				$r = $r===0;
+			}elseif( $this->mode === DB::MYSQLI )
 				$r = $this->link->set_charset( $b );
 			elseif( $this->mode === DB::MYSQL )
 				$r = mysql_set_charset( $b, $this->link );
