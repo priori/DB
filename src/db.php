@@ -134,7 +134,19 @@ class DB{
 	// todo formas de especificar socket
 	public function __construct($h='localhost',$u='root',$p='')
 	{
+		static $alowed_args = array(
+			'user' => true, 'password' => true,
+			'dbname' => true, 'port' => true,
+			'socket' => true
+		);
 		if( is_array( $h ) ){
+			foreach( $h as $c => $v ){
+				if( !isset($alowed_args[$c]) ){
+					$this->fire_error('Argumento inválido! Conexão não usa parametro '.$c);
+				}else if( $v and !is_numeric($v) and !is_string($v) and !is_bool($v) ){
+					$this->fire_error('Valor inválido para parametro '.$c);
+				}
+			}
 			if( isset($h['user']) )
 				$u = $h['user'];
 			if( isset($h['password']) )
@@ -155,6 +167,13 @@ class DB{
 			else
 				$h = 'localhost';
 			$u = false;
+		}else{
+			if( $h and !is_string($h) )
+				$this->fire_error('Valor inválido para host.');
+			if( $u and !is_string($u) )
+				$this->fire_error('Valor inválido para usuário.');
+			if( $p and !is_string($p) and !is_int($p) )
+				$this->fire_error('Valor inválido para senha.');
 		}
 		if( isset($postgresql) and $postgresql ){
 			$this->mode = DB::POSTGRESQL;
@@ -194,8 +213,9 @@ class DB{
 				}else{
 					if( isset($dbname) ){
 						$this->link = new mysqli($h,$u,$p,$dbname);
-					}else
+					}else{
 						$this->link = new mysqli($h,$u,$p);
+					}
 				}
 				if( mysqli_connect_error() ){
 					$this->link = false;
