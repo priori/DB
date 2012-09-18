@@ -353,8 +353,21 @@ class Model implements arrayaccess, Countable{
 	// remove
 	public function remove($id){
 		$t = $this->__toString();
-		$sql = array("DELETE FROM `$t` ");
-		$this->sql_where_id_eq( $sql, $id );
+		$sql = array("DELETE FROM $t ");
+		if( is_array($this->pk) and !is_array($id) ){
+			$id = func_get_args();
+		}else if( func_num_args() != 1 ){
+			$this->db->fire_error("Argumentos inválidos. Método espera somente um argumento (id).");
+		}
+		if( is_object($id) or is_resource($id) ){
+			$this->db->fire_error("Invalid arguments. Id can't be a object.");
+		}
+		if( is_array($id) ){
+			$id =& $this->build_id( $id );
+			$this->sql_where( $sql, $id );
+		}else{
+			$this->sql_where_id_eq( $sql, $id );
+		}
 		$sql = implode('',$sql);
 		return $this->db->_query( $sql );
 	}
@@ -363,7 +376,20 @@ class Model implements arrayaccess, Countable{
 	public function get($id){
 		$t = $this->__toString();
 		$sql = array("SELECT * FROM $t ");
-		$this->sql_where_id_eq( $sql, $id );
+		if( is_array($this->pk) and !is_array($id) ){
+			$id = func_get_args();
+		}else if( func_num_args() != 1 ){
+			$this->db->fire_error("Argumentos inválidos. Método espera somente um argumento (id).");
+		}
+		if( is_object($id) or is_resource($id) ){
+			$this->db->fire_error("Invalid arguments. Id can't be a object.");
+		}
+		if( is_array($id) ){
+			$id =& $this->build_id( $id );
+			$this->sql_where( $sql, $id );
+		}else{
+			$this->sql_where_id_eq( $sql, $id );
+		}
 		$sql = implode('',$sql);
 		$r = $this->db->_query($sql);
 		return $r->fetch();
@@ -577,7 +603,10 @@ class Model implements arrayaccess, Countable{
 								'Parametro deve ser uma string ou um array de string com chaves numéricas!');
 					$pkt[$v] = true;
 				}
-				$this->pk = $b;
+				if( count($b) == 1 )
+					$this->pk = array_pop($b);
+				else
+					$this->pk = $b;
 				$this->pkt = $pkt;
 			}elseif( !is_string($b) ){
 				$this->db->fire_error('Valor inválido para pk (primary key)!');

@@ -92,6 +92,7 @@ class Test extends PHPUnit_Framework_TestCase {
 	// somente pk multipla e operações básicas
 
 	// set (pk)
+	// para chaves multiplas por enquanto array obrigatório
 	public function test003(){
 		$db = $this->db;
 		$db->pessoa->truncate();
@@ -249,7 +250,8 @@ class Test extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(1,count($p));
 		$p[] = array('id'=>5,'nome'=>'A');
 		$this->assertEquals(2,count($p));
-		$this->assertEquals(array('id'=>5,'nome'=>'A','idade'=>null),$p[5]);
+		$this->assertEquals(array('id'=>5,'nome'=>'A','idade'=>null),
+				$p[5]);
 		$err = false;
 		try{
 			$p[] = array('a'=>'b');
@@ -281,6 +283,7 @@ class Test extends PHPUnit_Framework_TestCase {
 	}
 
 	// get
+	// array opcional
 	public function test005(){
 		$pk2 = $this->db->pessoa_pk2;
 		$p = $this->db->pessoa;
@@ -293,7 +296,139 @@ class Test extends PHPUnit_Framework_TestCase {
 				$p[55]);
 
 		$pk2[] = array('nome'=>'Leo','id2'=>55);
+		$pk2[] = array('nome'=>'B','id'=>55,'id2'=>2);
+		$pk2[] = array('nome'=>'C','id2'=>1);
+		$pk2[] = array('nome'=>'D','id'=>3,'id2'=>1);
+		$pk2[] = array('nome'=>'E','id'=>1,'id2'=>3);
 		$this->assertEquals(array('nome'=>'Leo','id2'=>55,'id'=>1),
 				$pk2->get(1,55));
+		$this->assertEquals(array('nome'=>'B','id'=>55,'id2'=>2),
+				$pk2->get(55,2));
+		$this->assertEquals(array('nome'=>'C','id'=>56,'id2'=>1),
+				$pk2->get(56,1));
+
+		$this->assertEquals(array('nome'=>'D','id'=>3,'id2'=>1),
+				$pk2->get(3,1));
+		$this->assertEquals(array('nome'=>'E','id'=>1,'id2'=>3),
+				$pk2->get(1,3));
+
+		$this->assertEquals(array('nome'=>'D','id'=>3,'id2'=>1),
+				$pk2->get(array(3,1)));
+		$this->assertEquals(array('nome'=>'E','id'=>1,'id2'=>3),
+				$pk2->get(array(1,3)));
+
+		$this->assertEquals(array('nome'=>'D','id'=>3,'id2'=>1),
+				$pk2->get(array(1,'id'=>3)));
+		$this->assertEquals(array('nome'=>'E','id'=>1,'id2'=>3),
+				$pk2->get(array(3,'id'=>1)));
+
+		$this->assertEquals(array('nome'=>'D','id'=>3,'id2'=>1),
+				$pk2->get(array('id2'=>1,3)));
+		$this->assertEquals(array('nome'=>'E','id'=>1,'id2'=>3),
+				$pk2->get(array(1,'id2'=>3)));
+
+		$err = false;
+		try{
+			$pk2->get(1,3,4);
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$err = false;
+		try{
+			$pk2->get(1);
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$err = false;
+		try{
+			$p->get(array(1,2));
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$this->assertEquals($p[1],$p->get(array(1)));
+
+		$err = false;
+		try{
+			$p->get((object)array(1,2));
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+	}
+
+	// remove
+	public function test006(){
+		$pk2 = $this->db->pessoa_pk2;
+		$p = $this->db->pessoa;
+		$pk2->truncate();
+		$p->truncate();
+		$pk2->pk = array('id','id2');
+		$pk2[] = array('nome'=>'Leo','id2'=>55);
+		$pk2[] = array('nome'=>'B','id'=>55,'id2'=>2);
+		$pk2[] = array('nome'=>'C','id2'=>1);
+		$pk2[] = array('nome'=>'D','id'=>3,'id2'=>1);
+		$pk2[] = array('nome'=>'E','id'=>1,'id2'=>3);
+		$p[] = array('nome'=>'A');
+		$p[] = array('nome'=>'B');
+		$p[] = array('nome'=>'C','id'=>50);
+		
+		$this->assertEquals(5,count($pk2));
+		$this->assertEquals(array('nome'=>'E','id'=>1,'id2'=>3),
+				$pk2->get(1,3));
+		$pk2->remove(1,3);
+		$this->assertEquals(4,count($pk2));
+		$this->assertEquals(null,$pk2->get(1,3));
+
+		$pk2[] = array('nome'=>'E','id'=>1,'id2'=>3);
+		$this->assertEquals(5,count($pk2));
+		$this->assertEquals(array('nome'=>'E','id'=>1,'id2'=>3),
+				$pk2->get(1,3));
+		$pk2->remove(array(1,3));
+		$this->assertEquals(4,count($pk2));
+		$this->assertEquals(null,$pk2->get(1,3));
+
+		$pk2[] = array('nome'=>'E','id'=>1,'id2'=>3);
+		$this->assertEquals(5,count($pk2));
+		$this->assertEquals(array('nome'=>'E','id'=>1,'id2'=>3),
+				$pk2->get(1,3));
+		$pk2->remove(array('id2'=>3,'id'=>1));
+		$this->assertEquals(4,count($pk2));
+		$this->assertEquals(null,$pk2->get(1,3));
+
+		$pk2[] = array('nome'=>'E','id'=>1,'id2'=>3);
+		$this->assertEquals(5,count($pk2));
+		$this->assertEquals(array('nome'=>'E','id'=>1,'id2'=>3),
+				$pk2->get(1,3));
+		$pk2->remove(array(3,'id'=>1));
+		$this->assertEquals(4,count($pk2));
+		$this->assertEquals(null,$pk2->get(1,3));
+
+		$err = false;
+		try{
+			$pk2->remove(array('id'=>5));
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+
+		$this->assertEquals(3,count($p));
+		$this->assertEquals(array('nome'=>'A','idade'=>null,
+				'id'=>1),$p[1]);
+		unset( $p[1] );
+		$this->assertEquals(null,$p[1]);
+		$this->assertEquals(2,count($p));
+
+		$this->assertEquals(2,count($p));
+		$this->assertEquals(array('nome'=>'C','idade'=>null,
+				'id'=>50),$p[50]);
+		unset( $p[50] );
+		$this->assertEquals(null,$p[50]);
+		$this->assertEquals(1,count($p));
 	}
 }
