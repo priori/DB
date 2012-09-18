@@ -88,7 +88,6 @@ class Test extends PHPUnit_Framework_TestCase {
 		), $db->pessoa[3] );
 	}
 
-
 	// primeiro sem trabalhar com macros, modelos, relação has_many
 	// somente pk multipla e operações básicas
 
@@ -251,7 +250,6 @@ class Test extends PHPUnit_Framework_TestCase {
 		$p[] = array('id'=>5,'nome'=>'A');
 		$this->assertEquals(2,count($p));
 		$this->assertEquals(array('id'=>5,'nome'=>'A','idade'=>null),$p[5]);
-
 		$err = false;
 		try{
 			$p[] = array('a'=>'b');
@@ -282,4 +280,17 @@ class Test extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array('id2'=>1,'id'=>1,'nome'=>'a'),$p);
 	}
 
+	// get
+	public function test005(){
+		$pk2 = $this->db->pessoa_pk2;
+		$p = $this->db->pessoa;
+		$pk2->truncate();
+		$p->truncate();
+		$pk2->pk = array('id','id2');
+		$p[] = array('nome'=>'Leo','id'=>55);
+		$pk2[] = array('nome'=>'Leo','id2'=>55);
+
+		$this->equals(array('nome'=>'Leo','id'=>55,'idade'=>null),$p[55]);
+		$this->equals(array('nome'=>'Leo','id2'=>55,'id'=>1),$pk->get(1,55));
+	}
 }
