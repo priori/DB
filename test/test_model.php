@@ -58,7 +58,7 @@ class Test extends PHPUnit_Framework_TestCase {
 		}catch( Exception $e ){
 			$err = true;
 		}
-		$this->assertTrue( !$err and count($db->pessoa->all()) == 1 );
+		$this->assertTrue( !$err and count($db->pessoa) == 1 );
 	}
 
 	public function test002(){
@@ -247,9 +247,9 @@ class Test extends PHPUnit_Framework_TestCase {
 		$p->truncate();
 
 		$p[] = array('nome'=>'Leo');
-		$this->assertEquals(1,count($p->all()));
+		$this->assertEquals(1,count($p));
 		$p[] = array('id'=>5,'nome'=>'A');
-		$this->assertEquals(2,count($p->all()));
+		$this->assertEquals(2,count($p));
 		$this->assertEquals(array('id'=>5,'nome'=>'A','idade'=>null),$p[5]);
 
 		$err = false;

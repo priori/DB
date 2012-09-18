@@ -1,6 +1,6 @@
 <?php
 
-class Model implements arrayaccess{
+class Model implements arrayaccess, Countable{
 
 	private $db;
 	private $args;
@@ -43,7 +43,7 @@ class Model implements arrayaccess{
 	// set, update
 	public function set( $id, $args ){
 		if( !is_array($args) ){
-			$this->db->fire_error('Valor inválido, para inserção de valores espera-se um array');
+			$this->db->fire_error('Argumento inválido, para valores espera-se um array');
 		}
 		$args =& Decoder::decode_array( $args );
 		if( is_array($id) ){
@@ -521,7 +521,7 @@ class Model implements arrayaccess{
 			return $this->_add( $val );
 		}else{
 			if( !is_array($val) ){
-				$this->db->fire_error('Valor inválido, para inserção de valores espera-se um array');
+				$this->db->fire_error('Argumento inválido, para valores espera-se um array');
 			}
 			$val =& Decoder::decode_array( $val );
 			// id pode ser array, object, resource??
@@ -555,6 +555,13 @@ class Model implements arrayaccess{
 		$sql = implode('',$sql);
 		$r = $this->db->_query($sql);
 		return $r->num_rows() > 0;
+	}
+	public function count(){
+		$t = $this->__toString();
+		$sql = "SELECT COUNT(*) AS c FROM $t";
+		$r = $this->db->_query($sql);
+		$r = $r->fetch();
+		return $r['c'];
 	}
 	public function truncate(){
 		$t = $this->__toString();
