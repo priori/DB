@@ -287,10 +287,13 @@ class Test extends PHPUnit_Framework_TestCase {
 		$pk2->truncate();
 		$p->truncate();
 		$pk2->pk = array('id','id2');
-		$p[] = array('nome'=>'Leo','id'=>55);
-		$pk2[] = array('nome'=>'Leo','id2'=>55);
 
-		$this->equals(array('nome'=>'Leo','id'=>55,'idade'=>null),$p[55]);
-		$this->equals(array('nome'=>'Leo','id2'=>55,'id'=>1),$pk->get(1,55));
+		$p[] = array('nome'=>'Leo','id'=>55);
+		$this->assertEquals(array('nome'=>'Leo','id'=>55,'idade'=>null),
+				$p[55]);
+
+		$pk2[] = array('nome'=>'Leo','id2'=>55);
+		$this->assertEquals(array('nome'=>'Leo','id2'=>55,'id'=>1),
+				$pk2->get(1,55));
 	}
 }
