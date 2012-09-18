@@ -445,42 +445,102 @@ class Test extends PHPUnit_Framework_TestCase {
 	public function test007(){
 		$db = $this->db;
 		$p = $db->pessoa;
-		$p[] = array(
-			'nome:date' => 'Leo'
-		);
+		$p[] = array('nome:date' => 'Leo');
 		$this->assertTrue( !!$db->errors() );
 
-		$p->truncate();
-		$p[] = array(
-			'nome:date(dd/mm/yyyy)' => '30/01/2012'
-		);
-		$e = $p[0];
+		$p[1] = array('nome:date(dd/mm/yyyy)' => '30/01/2012');
+		$e = $p[1];
 		$this->assertEquals('2012-01-30',$e['nome']);
 		$this->assertTrue( !$db->errors() );
 
 		$p->truncate();
-		$p[] = array(
-			'nome:date(mm/dd/yyyy)' => '01/30/2012'
-		);
-		$e = $p[0];
+		$p[] = array('nome:date(mm/dd/yyyy)' => '01/30/2012');
+		$e = $p[1];
 		$this->assertEquals('2012-01-30',$e['nome']);
 		$this->assertTrue( !$db->errors() );
 
-		$p->truncate();
-		$p[] = array(
-			'nome:date(mm/dd/yyyy)' => '01/34/2012'
-		);
+		$p[1] = array('nome:date(mm/dd/yyyy)' => '01/34/2012');
 		$this->assertTrue( !!$db->errors() );
 
 		$p->truncate();
 		$err = false;
 		try{
-			$p[] = array(
-				'nome:date(asdfasdf)' => '01/34/2012'
-			);
+			$p[] = array('nome:date(asdfasdf)' => '01/34/2012');
 		}catch( Exception $e ){
 			$err = true;
 		}
 		$this->assertTrue( $err );
+	}
+
+	// integer, numeric
+	public function test008(){
+		$p = $this->db->pessoa;
+		$p->truncate();
+
+		$p[] = array('nome:int' => '100');
+		$e = $p[1];
+		$this->assertEquals(100,$e['nome']);
+
+		$p[1] = array('nome:integer' => '10');
+		$e = $p[1];
+		$this->assertEquals(10,$e['nome']);
+
+		$p[1] = array('nome:integer' => '20.0');
+		$e = $p[1];
+		$this->assertEquals(20,$e['nome']);
+
+		$p[1] = array('nome:integer' => '20.1');
+		$this->assertTrue( !!$this->db->errors() );
+
+		$p[1] = array('nome:integer' => '10a');
+		$this->assertTrue( !!$this->db->errors() );
+
+		$p[1] = array('nome:int' => '10a');
+		$this->assertTrue( !!$this->db->errors() );
+
+		// numeric
+		$p[1] = array('nome:numeric' => '15');
+		$e = $p[1];
+		$this->assertEquals(15,$e['nome']);
+
+		$p[1] = array('nome:numeric' => '15.1');
+		$e = $p[1];
+		$this->assertEquals(15.1,$e['nome']);
+
+		$p[1] = array('nome:num' => '15.1');
+		$e = $p[1];
+		$this->assertEquals(15.1,$e['nome']);
+
+		$p[1] = array('nome:num' => '15.1a');
+		$this->assertEquals(!$this->db->errors());
+
+		$p[1] = array('nome:numeric' => 'a15.1');
+		$this->assertEquals(!$this->db->errors());
+	}
+
+	// sql
+	public function test009(){
+		$p = $this->db->pessoa;
+
+		$p[] = array('nome:sql' => '1+2' );
+		$e = $p[1];
+		$this->assertEquals('3',$e['nome']);
+
+		$p[1] = array('nome:sql(1+?)' => '5' );
+		$e = $p[1];
+		$this->assertEquals('6',$e['nome']);
+
+		$p[1] = array('nome:sql(?+?)' => array(5,5) );
+		$e = $p[1];
+		$this->assertEquals('10',$e['nome']);
+
+		$err = false;
+		try{
+			$p[1] = array('nome:sql' => '-a-' );
+			$err = true;
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
 	}
 }
