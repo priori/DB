@@ -27,6 +27,12 @@ class Test extends PHPUnit_Framework_TestCase {
 			pk INTEGER UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
 			nome TINYTEXT NOT NULL
 		)');
+		$this->db->query('CREATE TABLE pessoa_pk2 (
+			id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+			id2 INTEGER UNSIGNED NOT NULL,
+			nome TINYTEXT NOT NULL,
+			PRIMARY KEY (id, id2)
+		)');
 	}
 
 
@@ -81,6 +87,10 @@ class Test extends PHPUnit_Framework_TestCase {
 			'id'=>3
 		), $db->pessoa[3] );
 	}
+
+
+	// primeiro sem trabalhar com macros, modelos, relação has_many
+	// somente pk multipla e operações básicas
 
 	// set (pk)
 	public function test003(){
@@ -142,6 +152,134 @@ class Test extends PHPUnit_Framework_TestCase {
 			$err = true;
 		}
 		$this->assertTrue( $err );
+		// valor inválido
+		$err = false;
+		try{
+			$db->pessoa_pk[1] = 'aasdf';
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+		$err = false;
+		try{
+			$db->pessoa_pk[1] = true;
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+		$err = false;
+		try{
+			$db->pessoa_pk[1] = (object)array('nome'=>'A');
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+
+		// chave multipla
+		$db->pessoa_pk2->pk = array('id','id2');
+		$db->pessoa_pk2[] = array('id2'=>3,'nome'=>'Nome');
+		$db->pessoa_pk2->set(array(1,3),array('nome'=>'NOME'));
+		$p = $db->pessoa_pk2->get_where(array('id'=>1,'id2'=>3));
+		$this->assertEquals(array('id'=>1,'id2'=>3,'nome'=>'NOME'),$p);
+
+		$db->pessoa_pk2->set(array(3,'id'=>1),array('nome'=>'1'));
+		$p = $db->pessoa_pk2->get_where(array('id'=>1,'id2'=>3));
+		$this->assertEquals(array('id'=>1,'id2'=>3,'nome'=>'1'),$p);
+
+		$db->pessoa_pk2->set(array('id'=>1,3),array('nome'=>'2'));
+		$p = $db->pessoa_pk2->get_where(array('id'=>1,'id2'=>3));
+		$this->assertEquals(array('id'=>1,'id2'=>3,'nome'=>'2'),$p);
+
+		$db->pessoa_pk2->set(array('id2'=>3,1),array('nome'=>'3'));
+		$p = $db->pessoa_pk2->get_where(array('id'=>1,'id2'=>3));
+		$this->assertEquals(array('id'=>1,'id2'=>3,'nome'=>'3'),$p);
+
+		$db->pessoa_pk2->set(array(1,'id2'=>3),array('nome'=>'4'));
+		$p = $db->pessoa_pk2->get_where(array('id'=>1,'id2'=>3));
+		$this->assertEquals(array('id'=>1,'id2'=>3,'nome'=>'4'),$p);
+
+		$db->pessoa_pk2->set(array('id'=>1,'id2'=>3),array('nome'=>'5'));
+		$p = $db->pessoa_pk2->get_where(array('id'=>1,'id2'=>3));
+		$this->assertEquals(array('id'=>1,'id2'=>3,'nome'=>'5'),$p);
+
+		$db->pessoa_pk2->set(array('id2'=>3,'id'=>1),array('nome'=>'6'));
+		$p = $db->pessoa_pk2->get_where(array('id'=>1,'id2'=>3));
+		$this->assertEquals(array('id'=>1,'id2'=>3,'nome'=>'6'),$p);
+
+		$err = false;
+		try{
+			$db->pessoa_pk2->set(array('id3'=>3,'id'=>1),array('nome'=>'6'));
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$err = false;
+		try{
+			$db->pessoa_pk2->set(array(3,'ida'=>1),array('nome'=>'6'));
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$err = false;
+		try{
+			$db->pessoa_pk2->set(array(3,'id'=>1,4),array('nome'=>'6'));
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$err = false;
+		try{
+			$db->pessoa_pk2->set(array(3,1,4),array('nome'=>'6'));
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+	}
+
+
+	// add
+	public function test004(){
+		$db = $this->db;
+		$p = $db->pessoa;
+		$p->truncate();
+
+		$p[] = array('nome'=>'Leo');
+		$this->assertEquals(1,count($p->all()));
+		$p[] = array('id'=>5,'nome'=>'A');
+		$this->assertEquals(2,count($p->all()));
+		$this->assertEquals(array('id'=>5,'nome'=>'A','idade'=>null),$p[5]);
+
+		$err = false;
+		try{
+			$p[] = array('a'=>'b');
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$err = false;
+		try{
+			$p[] = 'a';
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$err = false;
+		try{
+			$p[] = (object)array('nome'=>'Leo');
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$db->pessoa_pk2->truncate();
+		$db->pessoa_pk2[] = array('id2'=>1,'nome'=>'a');
+		$p = $db->pessoa_pk2->get_where(array('id2'=>1,'id'=>1));
+		$this->assertEquals(array('id2'=>1,'id'=>1,'nome'=>'a'),$p);
 	}
 
 }

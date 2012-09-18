@@ -42,10 +42,12 @@ class Model implements arrayaccess{
 
 	// set, update
 	public function set( $id, $args ){
-		$args = Decoder::decode_array( $args );
+		if( !is_array($args) ){
+			$this->db->fire_error('Valor inválido, para inserção de valores espera-se um array');
+		}
+		$args =& Decoder::decode_array( $args );
 		if( is_array($id) ){
 			$id =& $this->build_id( $id );
-			// return $this->_set_where( $id, $args );
 		}
 		if( is_object($id) or is_resource($id) ){
 			$this->db->fire_error("Invalid arguments. Id can't be a object.");
@@ -73,14 +75,14 @@ class Model implements arrayaccess{
 			if( is_string($c) ){
 				if( !isset($this->pkt[$c]) ){
 					$this->db->fire_error('Coluna <strong>'.$c.'<strong> não faz parte da chave primária.');
-				}elseif( is_int($c) ){
-					$pk[ $falta[$c2] ] = $v;
-					$c2++;
-				}else{
-					$this->db->fire_error('Id inválido! Indices devem ser string ou inteiro.');
 				}
+				$pk[$c] = $v;
+			}elseif( is_int($c) ){
+				$pk[ $falta[$c2] ] = $v;
+				$c2++;
+			}else{
+				$this->db->fire_error('Id inválido! Indices devem ser string ou inteiro.');
 			}
-			// todo 
 		}
 		return $pk;
 	}
@@ -189,6 +191,9 @@ class Model implements arrayaccess{
 		return $ok;
 	}
 	public function _add(&$e,$replace=false){
+		if( !is_array($e) ){
+			$this->db->fire_error('Valor inválido, para inserção de valores espera-se um array');
+		}
 		$e = Decoder::decode_array( $e );
 		$vals = false;
 		if( !$this->validate($e,$vals,'add') ){ // e o replace?
@@ -380,6 +385,9 @@ class Model implements arrayaccess{
 		$r = $this->db->_query(implode($q));
 		return $r->fetch();
 	}
+	public function set_where( $id, $v ){
+		$this->_set_where( $id, $v );
+	}
 
 	public function all(){
 		$t = $this->__toString();
@@ -512,7 +520,12 @@ class Model implements arrayaccess{
 		if( $id === NULL ){
 			return $this->_add( $val );
 		}else{
-			return $this->set( $id, $val );
+			if( !is_array($val) ){
+				$this->db->fire_error('Valor inválido, para inserção de valores espera-se um array');
+			}
+			$val =& Decoder::decode_array( $val );
+			// id pode ser array, object, resource??
+			return $this->_set( $id, $val );
 		}
 	}
 	public function offsetUnset($id){
@@ -557,14 +570,14 @@ class Model implements arrayaccess{
 								'Parametro deve ser uma string ou um array de string com chaves numéricas!');
 					$pkt[$v] = true;
 				}
-				$this->pk = $this->db->_escape(trim($b));
+				$this->pk = $b;
 				$this->pkt = $pkt;
-			}
-			if( !is_string($b) ){
+			}elseif( !is_string($b) ){
 				$this->db->fire_error('Valor inválido para pk (primary key)!');
+			}else{
+				$this->pk = $this->db->_escape($b);
+				$this->pkt = array($b=>true);
 			}
-			$this->pk = $this->db->_escape($b);
-			$this->pkt = array($b=>true);
 		}else{
 			$this->db->fire_error('Atributo '.$a.' não editavel');
 		}
