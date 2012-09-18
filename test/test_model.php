@@ -431,4 +431,56 @@ class Test extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(null,$p[50]);
 		$this->assertEquals(1,count($p));
 	}
+
+
+	// protected function macro( $m, $v, $v2 ){
+	// 	$this->db->pessoa->truncate();
+	// 	$this->db->pessoa[] = array(
+	// 		'nome:'.$m => 'Leo'
+	// 	);
+	// }
+	
+	// macros
+	// date
+	public function test007(){
+		$db = $this->db;
+		$p = $db->pessoa;
+		$p[] = array(
+			'nome:date' => 'Leo'
+		);
+		$this->assertTrue( !!$db->errors() );
+
+		$p->truncate();
+		$p[] = array(
+			'nome:date(dd/mm/yyyy)' => '30/01/2012'
+		);
+		$e = $p[0];
+		$this->assertEquals('2012-01-30',$e['nome']);
+		$this->assertTrue( !$db->errors() );
+
+		$p->truncate();
+		$p[] = array(
+			'nome:date(mm/dd/yyyy)' => '01/30/2012'
+		);
+		$e = $p[0];
+		$this->assertEquals('2012-01-30',$e['nome']);
+		$this->assertTrue( !$db->errors() );
+
+		$p->truncate();
+		$p[] = array(
+			'nome:date(mm/dd/yyyy)' => '01/34/2012'
+		);
+		$this->assertTrue( !!$db->errors() );
+
+		$p->truncate();
+		$err = false;
+		try{
+			$p[] = array(
+				'nome:date(asdfasdf)' => '01/34/2012'
+			);
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+	}
 }

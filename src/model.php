@@ -143,7 +143,8 @@ class Model implements arrayaccess, Countable{
 	}
 
 	private $macros = array('sql'=>true,'now'=>true,'date'=>true,'int'=>true,'text'=>true,
-		'format'=>true,'num'=>true,'numeric'=>true,'integer'=>true, 'serialize'=>true );
+		'format'=>true,'num'=>true,'numeric'=>true,'integer'=>true, 'serialize'=>true,
+		'date_time' => true );
 	// microtime, date_time, required, length_gt, length_lt, gt, lt
 	private $macros_alias = array('num'=>'numeric','int'=>'integer');
 	private $macros_optional_params = array('date'=>true,'text'=>true,'sql'=>true); // numeric(size)
