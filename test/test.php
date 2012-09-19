@@ -15,7 +15,7 @@ class Test extends PHPUnit_Framework_TestCase {
 	protected function criaBase(){
 		$this->db->query('DROP DATABASE IF EXISTS test_db_lib');
 		$this->db->query('CREATE DATABASE test_db_lib');
-		$this->db->select_db('test_db_lib'); // use
+		$this->db->query('USE test_db_lib'); // use
 		$this->db->query('CREATE TABLE pessoa (
 			id INTEGER UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
 			casa_id INTEGER UNSIGNED NOT NULL,
