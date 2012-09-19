@@ -112,7 +112,7 @@ class Decoder{
 				if( isset($aux['value']) ){
 					return 1;
 				}
-				$aux['content'] = $v;
+				$aux[1] = $v;
 
 			}elseif( $c === $count and is_string($v) ){
 				$count++;

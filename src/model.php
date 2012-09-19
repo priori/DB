@@ -91,7 +91,7 @@ class Model implements arrayaccess, Countable{
 	public function _set(&$id, &$attrs){
 		$vals = false;
 		if( !$this->validate($attrs,$vals,'set') ){ // e o replace?
-			// return;
+			return;
 		}
 		$n = array();
 		$q = array();
@@ -118,17 +118,17 @@ class Model implements arrayaccess, Countable{
 			$q[] = $this->db->_escape($name);
 			$q[] = $this->b;
 			$q[] = ' = ';
-			if( isset($attr['content']) ){ // ponteiro
-				$v = $attr['content'];
+			if( isset($attr[1]) ){ // ponteiro
+				$v = $attr[1];
 			}else{
 				$this->db->fire_error('Chave sem valor!');
 				return;
 			}
 			if( isset($attr['sql']) ){
-				$q[] = $attr['content'];
+				$q[] = $attr[1];
 			}else{
 				$q[] = '\'';
-				$q[] = $this->db->escape($attr['content']);
+				$q[] = $this->db->escape($attr[1]);
 				$q[] = '\'';
 			}
 			// $this->sql_value( $q, $v, $attr, $name );
@@ -161,6 +161,7 @@ class Model implements arrayaccess, Countable{
 	private $macros_not = array('int'=>'date','integer'=>'date');
 	private $macros_optional_params = array('date'=>true,'text'=>true,'sql'=>true); // numeric(size)
 	private $macros_required_params = array('format'=>true);
+	private $macros_dont_need_value = array( 'now' => true );
 	private function validate( &$es, &$vals, $tipo ){
 		// nao vamos pensar em vals por enquanto
 		$r = true;
@@ -171,16 +172,14 @@ class Model implements arrayaccess, Countable{
 		// formata valores
 		// verifica valores mal formatados -> add_error
 		foreach( $es as $k => $e ){
-			// macros que não podem ser usadas em conjunto
-			// macro junto a sua alias
 			// não valida o valor passado
-			$ok = $this->validate_macros( $e );
-			if( $ok and isset($es[$k]['content']) ){
-				$r = $this->value( $es[$k], $es[$k]['content'] );
+			$this->validate_macros( $e, isset($es[$k][1]) );
+			if( isset($es[$k][1]) ){
+				$r = $this->value( $es[$k], $es[$k][1] );
 			}else{
 				$value;
-				$r = $this->value( $es[$k], $value );
-				$es[$k]['content'] = $value;
+				$r = $this->value( $es[$k], $value, true );
+				$es[$k][1] = $value;
 			}
 			if( !$r ){
 				$ok = $r;
@@ -188,11 +187,13 @@ class Model implements arrayaccess, Countable{
 		}
 		return $ok;
 	}
-	public function validate_macros( &$e ){
-		$ok = true;
+	// tá errado, a ideia era acumular os erros
+	// só está acumulando erros de uma mesma coluna (indice)
+	public function validate_macros( &$e, $with_value ){
 		$msg = array();
+		$macro_need_value = true;
 		foreach( $e as $macro => $params ){
-			if( $macro === 0 or $macro === 'content' )continue;
+			if( $macro === 0 or $macro === 1 )continue;
 			if( !isset($this->macros[$macro]) ){
 				$msg[] = 'Invalid macro "';
 				$msg[] = $macro;
@@ -205,7 +206,6 @@ class Model implements arrayaccess, Countable{
 					$msg[] = 'Use lower case and no white spaces in macros. ';
 				}
 				continue;
-				$ok = false;
 			}
 			if( isset($this->macros_not[$macro]) and isset($e[$this->macros_not[$macro]]) ){
 				$msg[] = 'Redundancy! Dont use "';
@@ -220,18 +220,30 @@ class Model implements arrayaccess, Countable{
 				$msg[] = '" with "';
 				$msg[] = $this->macros_alias[$macro];
 				$msg[] = '"! ';
-				$ok = false;
 			}
-			if( isset($this->macros_required_params[$macro]) and false ){
+			if( isset($this->macros_required_params[$macro]) and $params === true ){
 				$msg[] = 'Macro "';
 				$msg[] = $macro;
 				$msg[] = '" needs parameters! ';
-				$ok = false;
 			}
+			if( isset($this->macros_dont_need_value[$macro]) ){
+				$macro_need_value = false;
+				if( $with_value ){
+					$msg[] = 'Índice "';
+					$msg[] = $e[0];
+					$msg[] = '" deve ser usado sem valor! Macro :';
+					$msg[] = $macro;
+					$msg[] = ' é usada sem valor.';
+				}
+			}
+		}
+		if( $macro_need_value and !$with_value ){
+			$msg[] = 'Índice "';
+			$msg[] = $e[0];
+			$msg[] = '" deve ser ter algum valor!';
 		}
 		if( count($msg) )
 			$this->db->fire_error(join('',$msg));
-		return $ok;
 	}
 
 
@@ -242,7 +254,7 @@ class Model implements arrayaccess, Countable{
 		$e = Decoder::decode_array( $e );
 		$vals = false;
 		if( !$this->validate($e,$vals,'add') ){ // e o replace?
-			// return;
+			return;
 		}
 		return $this->__add($e,$replace);
 	}
@@ -278,7 +290,7 @@ class Model implements arrayaccess, Countable{
 		$q[] = ') VALUES (';
 		$b = false;
 		foreach( $e as $v ){
-			$value = $v['content'];
+			$value = $v[1];
 			if( $b ){
 				$q[] = ',';
 			}else{
@@ -300,16 +312,16 @@ class Model implements arrayaccess, Countable{
 	// quando não usa aspas
 	// não dá fazer resolver no _value (formata e valida)
 	private function sql_value( &$q, &$v, &$b, &$c ){
-		if( is_int($b['content']) or is_float($b['content']) ){
-			$q[] = $b['content'];
+		if( is_int($b[1]) or is_float($b[1]) ){
+			$q[] = $b[1];
 		}elseif( isset($b['serialize']) ){
 			$q[] = '\'';
-			$q[] = $this->db->_escape(serialize($b['content']));
+			$q[] = $this->db->_escape(serialize($b[1]));
 			$q[] = '\'';
 		}elseif( isset($b['sql']) ){
-			$q[] = $b['content'];
+			$q[] = $b[1];
 		}else{
-			$c =& $b['content'];
+			$c =& $b[1];
 			if( is_int($c) or is_float($c) ){
 				$q[] = $c;
 			}else{
@@ -320,10 +332,10 @@ class Model implements arrayaccess, Countable{
 		}
 	}
 
-	private function value( &$attr, &$value ){
+	private function value( &$attr, &$value, $no_value = false ){
 		$r = (include 'value.php');
 		if( isset($value) )
-			$attr['content'] = $value;
+			$attr[1] = $value;
 		return $r;
 	}
 
@@ -353,8 +365,7 @@ class Model implements arrayaccess, Countable{
 		}else{
 			$this->sql_where_id_eq( $sql, $id );
 		}
-		$sql = implode('',$sql);
-		return $this->db->_query( $sql );
+		return $this->db->_query(implode('',$sql));
 	}
 
    // get
@@ -375,8 +386,7 @@ class Model implements arrayaccess, Countable{
 		}else{
 			$this->sql_where_id_eq( $sql, $id );
 		}
-		$sql = implode('',$sql);
-		$r = $this->db->_query($sql);
+		$r = $this->db->_query(implode('',$sql));
 		return $r->fetch();
 	}
 	public function remove_where( $w ){
@@ -544,8 +554,7 @@ class Model implements arrayaccess, Countable{
 		$t = $this->__toString();
 		$sql = array("DELETE FROM $t ");
 		$this->sql_where_id_eq( $sql, $id );
-		$sql = implode('',$sql);
-		return $this->db->_query( $sql );
+		return $this->db->_query(implode('',$sql));
 	}
 
    // get
@@ -553,8 +562,7 @@ class Model implements arrayaccess, Countable{
 		$t = $this->__toString();
 		$sql = array("SELECT * FROM $t ");
 		$this->sql_where_id_eq( $sql, $id );
-		$sql = implode('',$sql);
-		$r = $this->db->_query($sql);
+		$r = $this->db->_query(implode('',$sql));
 		return $r->fetch();
 	}
 	public function offsetExists($id){
@@ -564,14 +572,12 @@ class Model implements arrayaccess, Countable{
 			$this->db->fire_error('Você não pode utilizar o modelo assim tendo id múltiplo!');
 		$sql = array("SELECT 1 FROM $t ");
 		$this->sql_where_id_eq($sql,$id);
-		$sql = implode('',$sql);
-		$r = $this->db->_query($sql);
+		$r = $this->db->_query(implode('',$sql));
 		return $r->num_rows() > 0;
 	}
 	public function count(){
 		$t = $this->__toString();
-		$sql = "SELECT COUNT(*) AS c FROM $t";
-		$r = $this->db->_query($sql);
+		$r = $this->db->_query("SELECT COUNT(*) AS c FROM $t");
 		$r = $r->fetch();
 		return $r['c'];
 	}

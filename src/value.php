@@ -1,5 +1,7 @@
 <?php
 
+if( $no_value and !isset($attr['now']) )
+	$this->db->fire_error("Não foi passado valor para ".$attr[0].'. ');
 
 if( isset($attr['sql'])  ){
 	if( is_string($attr['sql']) ){
@@ -29,7 +31,7 @@ if( isset($attr['sql'])  ){
 	}
 	
 }elseif( isset($attr['now']) ){
-	if( isset($attr['content']) )
+	if( !$no_value )
 		$this->db->fire_error("Ao usar a macro :now não especifique um valor");
 	if( $attr['now'] !== true )
 		$this->db->fire_error("A macro :now não espera parametros.");

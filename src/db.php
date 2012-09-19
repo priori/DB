@@ -1,9 +1,5 @@
 <?php
 
-require_once dirname(__FILE__).'/db_result.php';
-require_once dirname(__FILE__).'/decoder.php';
-require_once dirname(__FILE__).'/error.php';
-require_once dirname(__FILE__).'/model.php';
 
 class DB{
 
@@ -258,14 +254,14 @@ class DB{
 			return false;
 
 		}else if( $this->_has_validation_error ){
-			if( $this->_first_query_with_error ){
-				$this->_first_query_with_error = false;
-				$this->last_return = false;
-				return false;
-			}
+			// if( $this->_first_query_with_error ){
+			// 	$this->_first_query_with_error = false;
+			// 	$this->last_return = false;
+			// 	return false;
+			// }
 			if( $this->transaction_count ){
 				$this->last_return = false;
-				return false;
+			   return false;
 			}
 			$this->_has_validation_error = false;
 
