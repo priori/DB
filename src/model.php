@@ -89,6 +89,10 @@ class Model implements arrayaccess, Countable{
 
 
 	public function _set(&$id, &$attrs){
+		$vals = false;
+		if( !$this->validate($attrs,$vals,'set') ){ // e o replace?
+			// return;
+		}
 		$n = array();
 		$q = array();
 		$q[] = 'UPDATE ';
@@ -101,7 +105,7 @@ class Model implements arrayaccess, Countable{
 		}
 		$q[] = $this->name;
 		$q[] = $this->b;
-		$q[] = 'SET ';
+		$q[] = ' SET ';
 		$b = false;
 		foreach( $attrs as $name => $attr ){
 			$v;
@@ -120,7 +124,14 @@ class Model implements arrayaccess, Countable{
 				$this->db->fire_error('Chave sem valor!');
 				return;
 			}
-			$this->sql_value( $q, $v, $attr, $name );
+			if( isset($attr['sql']) ){
+				$q[] = $attr['content'];
+			}else{
+				$q[] = '\'';
+				$q[] = $this->db->escape($attr['content']);
+				$q[] = '\'';
+			}
+			// $this->sql_value( $q, $v, $attr, $name );
 		}
 		$b = false;
 		$aux = array();
@@ -147,6 +158,7 @@ class Model implements arrayaccess, Countable{
 		'date_time' => true );
 	// microtime, date_time, required, length_gt, length_lt, gt, lt
 	private $macros_alias = array('num'=>'numeric','int'=>'integer');
+	private $macros_not = array('int'=>'date','integer'=>'date');
 	private $macros_optional_params = array('date'=>true,'text'=>true,'sql'=>true); // numeric(size)
 	private $macros_required_params = array('format'=>true);
 	private function validate( &$es, &$vals, $tipo ){
@@ -154,43 +166,75 @@ class Model implements arrayaccess, Countable{
 		$r = true;
 		$msg = array();
 		$ok = true;
+		// macros sendo usadas de forma errada -> fire_error
+		// verifica o tipo dos parametros -> fire_error
+		// formata valores
+		// verifica valores mal formatados -> add_error
 		foreach( $es as $k => $e ){
-			foreach( $e as $macro => $params ){
-				if( !isset($this->macros[$macro]) ){
-					$msg[] = 'Invalid macro "';
-					$msg[] = $macro;
-					$msg[] = '"! ';
-					if( isset($this->macros[strtolower($macro)]) ){
-						$msg[] = 'Use lower case in macros. ';
-					}elseif( isset($this->macros[trim($macro)]) ){
-						$msg[] = 'Be aware of white spaces in macros. ';
-					}elseif( isset($this->macros[trim(strtolower($macro))]) ){
-						$msg[] = 'Use lower case and no white spaces in macros. ';
-					}
-					continue;
-					$ok = false;
-				}
-				if( isset($this->macros_alias[$macro]) and isset($e[$this->macros_alias[$macro]]) ){
-					$msg[] = 'Redundancy! Dont use "';
-					$msg[] = $macro;
-					$msg[] = '" with "';
-					$msg[] = $this->macros_alias[$macro];
-					$msg[] = '"! ';
-					$ok = false;
-				}
-				if( isset($this->macros_required_params[$macro]) and false ){
-					$msg[] = 'Macro "';
-					$msg[] = $macro;
-					$msg[] = '" needs parameters! ';
-					$ok = false;
-				}
+			// macros que não podem ser usadas em conjunto
+			// macro junto a sua alias
+			// não valida o valor passado
+			$ok = $this->validate_macros( $e );
+			if( $ok and isset($es[$k]['content']) ){
+				$r = $this->value( $es[$k], $es[$k]['content'] );
+			}else{
+				$value;
+				$r = $this->value( $es[$k], $value );
+				$es[$k]['content'] = $value;
 			}
-			if( $ok and !isset($es[$k]['content']) ){
-				$this->value( $es[$k], $es[$k]['content'] );
+			if( !$r ){
+				$ok = $r;
 			}
 		}
 		return $ok;
 	}
+	public function validate_macros( &$e ){
+		$ok = true;
+		$msg = array();
+		foreach( $e as $macro => $params ){
+			if( $macro === 0 or $macro === 'content' )continue;
+			if( !isset($this->macros[$macro]) ){
+				$msg[] = 'Invalid macro "';
+				$msg[] = $macro;
+				$msg[] = '"! ';
+				if( isset($this->macros[strtolower($macro)]) ){
+					$msg[] = 'Use lower case in macros. ';
+				}elseif( isset($this->macros[trim($macro)]) ){
+					$msg[] = 'Be aware of white spaces in macros. ';
+				}elseif( isset($this->macros[trim(strtolower($macro))]) ){
+					$msg[] = 'Use lower case and no white spaces in macros. ';
+				}
+				continue;
+				$ok = false;
+			}
+			if( isset($this->macros_not[$macro]) and isset($e[$this->macros_not[$macro]]) ){
+				$msg[] = 'Redundancy! Dont use "';
+				$msg[] = $macro;
+				$msg[] = '" with "';
+				$msg[] = $this->macros_alias[$macro];
+				$msg[] = '"! ';
+			}
+			if( isset($this->macros_alias[$macro]) and isset($e[$this->macros_alias[$macro]]) ){
+				$msg[] = 'Redundancy! Dont use "';
+				$msg[] = $macro;
+				$msg[] = '" with "';
+				$msg[] = $this->macros_alias[$macro];
+				$msg[] = '"! ';
+				$ok = false;
+			}
+			if( isset($this->macros_required_params[$macro]) and false ){
+				$msg[] = 'Macro "';
+				$msg[] = $macro;
+				$msg[] = '" needs parameters! ';
+				$ok = false;
+			}
+		}
+		if( count($msg) )
+			$this->db->fire_error(join('',$msg));
+		return $ok;
+	}
+
+
 	public function _add(&$e,$replace=false){
 		if( !is_array($e) ){
 			$this->db->fire_error('Valor inválido, para inserção de valores espera-se um array');
@@ -198,12 +242,12 @@ class Model implements arrayaccess, Countable{
 		$e = Decoder::decode_array( $e );
 		$vals = false;
 		if( !$this->validate($e,$vals,'add') ){ // e o replace?
-			return;
+			// return;
 		}
 		return $this->__add($e,$replace);
 	}
 
-	public function __add(&$e,$replace=false,$multiple_insertions=false){
+	public function __add(&$e,$replace=false){
 		$q = array();
 		if( $replace===true )
 			$q[] = 'REPLACE INTO ';
@@ -219,67 +263,38 @@ class Model implements arrayaccess, Countable{
 		$q[] = $this->name;
 		$q[] = $this->b;
 		$q[] = ' (';
-
-		// em caso de inserssões multiplas o bixo pega
-		// entries tem os valores de cada nova entrada
-		// names os nomes das colunas que serão utilizadas
-		$entries = array(); // valores de cada nova entrada
-		$entries[] = array();
-		$names = array(); // nomes das col utilizadas
-
-		// se houver relações has many ou for utilizada outro tipo
-		// de funcionalidade que necessite de transações
-		$need_transaction = false;
-
-		// varias entradas, mas cada uma será inserida separadamente
-		$fazer_por_partes = false; // uma insersao multipla
-
-		$b = false; // precisa de virgula?
-		$entries_count = 0;
-		$has_more_entries = true;
-		while( $has_more_entries ){
-			if( !$multiple_insertions ){
-				$has_more_entries = false;
-				$entry =& $e;
+		$b = false;
+		foreach( $e as $v ){
+			$col = $v[0];
+			if( $b ){
+				$q[] = ',';
 			}else{
-				// mais complicado
-				// if default value
-				// guarda default value
-				// continue
-				// else
-				// set entry
+				$b = true;
 			}
-
-			foreach( $entry as $name => $attr ){
-
-				if( !isset($attr['has_many']) ){ // is not has many
-					if( isset($names[$name]) ){
-						continue;
-					}
-					if( $b )
-						$q[] = ', ';
-					else
-						$b = true;
-					$q[] = $this->a;
-					$q[] = $this->db->_escape($name);
-					$q[] = $this->b;
-
-					$entries[$entries_count][$name] = $attr; // tinha um & antes
-					$names[$name] = true;
-
-				}else{
-
-				}
+			$q[] = $this->a;
+			$q[] = $this->db->escape($col);
+			$q[] = $this->b;
+		}
+		$q[] = ') VALUES (';
+		$b = false;
+		foreach( $e as $v ){
+			$value = $v['content'];
+			if( $b ){
+				$q[] = ',';
+			}else{
+				$b = true;
 			}
-			$entries_count++;
+			if( isset($v['sql']) ){
+				$q[] = $value;
+			}else{
+				$q[] = '\'';
+				$q[] = $this->db->escape($value);
+				$q[] = '\'';
+			}
 		}
-		$q[] = ') VALUES ';
+		$q[] = ')';
 
-		if( !$multiple_insertions ){
-			return $this->_values( $q, $entries, $names, $need_transaction,
-					$default_values );
-		}
-		return $r0;
+		return $this->db->_query(implode('',$q));
 	}
 
 	// quando não usa aspas
@@ -305,41 +320,10 @@ class Model implements arrayaccess, Countable{
 		}
 	}
 
-	private function _values( &$q, &$entries, &$names, &$need_transaction,
-			&$default_values ){
-		$b2 = false;
-		foreach( $entries as $entry ){
-			if( $b2 )
-				$q[] = ', ';
-			$q[] = '(';
-			$b = false;
-			foreach( $names as $name => $aux ){
-				if( $b ){
-					$q[] = ', ';
-				}
-				$attr;
-				if( isset($entry[$name]) ){
-					$attr =& $entry[$name];
-					if( isset($attr['content']) ){ // ponteiro
-						$v = $attr['content'];
-					}else{
-						$this->db->fire_error('Chave sem valor!');
-						return;
-					}
-					$this->sql_value( $q, $v, $attr, $attr );
-				}else{
-					$q[] = 'DEFAULT';
-				}
-				$b = true;
-			}
-			$q[] = ')';
-			$b2 = true;
-		}
-		return $this->db->_query( implode('',$q) );
-	}
-
 	private function value( &$attr, &$value ){
 		$r = (include 'value.php');
+		if( isset($value) )
+			$attr['content'] = $value;
 		return $r;
 	}
 
@@ -552,6 +536,7 @@ class Model implements arrayaccess, Countable{
 			}
 			$val =& Decoder::decode_array( $val );
 			// id pode ser array, object, resource??
+			// if( $this->db->errors() )return;
 			return $this->_set( $id, $val );
 		}
 	}

@@ -98,11 +98,8 @@ class Test extends PHPUnit_Framework_TestCase {
 		$db->pessoa->truncate();
 		$db->pessoa_pk->truncate();
 		$db->pessoa[] = array( 'nome' => 'Leo','idade'=>'18');
-		$db->pessoa[1] = array(
-			'nome' => 'LEO'
-		);
-		$this->assertEquals(array(
-			'id' => 1, 
+		$db->pessoa[1] = array( 'nome' => 'LEO');
+		$this->assertEquals(array( 'id' => 1, 
 			'nome' => 'LEO',
 			'idade' => 18
 		),$db->pessoa[1]);
@@ -270,6 +267,14 @@ class Test extends PHPUnit_Framework_TestCase {
 
 		$err = false;
 		try{
+			$p[] = array('nome'=>array());
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$err = false;
+		try{
 			$p[] = (object)array('nome'=>'Leo');
 		}catch( Exception $e ){
 			$err = true;
@@ -378,7 +383,8 @@ class Test extends PHPUnit_Framework_TestCase {
 		$p[] = array('nome'=>'B');
 		$p[] = array('nome'=>'C','id'=>50);
 		
-		$this->assertEquals(5,count($pk2));
+		$c = count($pk2);
+		// $this->assertEquals(5,);
 		$this->assertEquals(array('nome'=>'E','id'=>1,'id2'=>3),
 				$pk2->get(1,3));
 		$pk2->remove(1,3);
@@ -441,13 +447,50 @@ class Test extends PHPUnit_Framework_TestCase {
 	// }
 	
 	// macros
-	// date
 	public function test007(){
+		$p = $this->db->pessoa;
+		$err = false;
+		try{
+			$p[] = array('nome:int'=>2,'nome:text'=>'a');
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+
+		$err = false;
+		try{
+			$p[] = array('nome:int:integer'=>2);
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+
+		$err = false;
+		try{
+			$p[] = array('nome:date:integer'=>2);
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+
+		$err = false;
+		try{
+			$p[] = array('nome:sql:int'=>20);
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( !$err );
+		$this->assertEquals('20',$p[1]['nome']);
+	}
+	
+	// date
+	public function test008(){
 		$db = $this->db;
 		$p = $db->pessoa;
 		$p[] = array('nome:date' => 'Leo');
 		$this->assertTrue( !!$db->errors() );
 
+		$p[] = array('nome' => 'Leo');
 		$p[1] = array('nome:date(dd/mm/yyyy)' => '30/01/2012');
 		$e = $p[1];
 		$this->assertEquals('2012-01-30',$e['nome']);
@@ -473,7 +516,7 @@ class Test extends PHPUnit_Framework_TestCase {
 	}
 
 	// integer, numeric
-	public function test008(){
+	public function test009(){
 		$p = $this->db->pessoa;
 		$p->truncate();
 
@@ -512,14 +555,14 @@ class Test extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(15.1,$e['nome']);
 
 		$p[1] = array('nome:num' => '15.1a');
-		$this->assertEquals(!$this->db->errors());
+		$this->assertTrue(!!$this->db->errors());
 
 		$p[1] = array('nome:numeric' => 'a15.1');
-		$this->assertEquals(!$this->db->errors());
+		$this->assertTrue(!!$this->db->errors());
 	}
 
 	// sql
-	public function test009(){
+	public function test010(){
 		$p = $this->db->pessoa;
 
 		$p[] = array('nome:sql' => '1+2' );
@@ -536,6 +579,24 @@ class Test extends PHPUnit_Framework_TestCase {
 
 		$err = false;
 		try{
+			$p[1] = array('nome:sql');
+			$err = true;
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$err = false;
+		try{
+			$p[1] = array('nome:sql(0)');
+			$err = true;
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+
+		$err = false;
+		try{
 			$p[1] = array('nome:sql' => '-a-' );
 			$err = true;
 		}catch(Exception $e ){
@@ -543,4 +604,71 @@ class Test extends PHPUnit_Framework_TestCase {
 		}
 		$this->assertTrue($err);
 	}
+
+	// now
+	public function test011(){
+		$p = $this->db->pessoa;
+		$p->truncate();
+		$p[] = array('nome:now');
+		$this->assertEquals(1,count($p));
+		$e = $p[1];
+		$this->assertTrue(!!$e['nome']);
+
+		$err = false;
+		try{
+			$p[] = array('nome:now'=>'15654');
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
+	}
+	// format
+	public function test012(){
+		$p = $this->db->pessoa;
+		$p->truncate();
+		$p[] = array('nome:format(.a.)'=>'1a1');
+		$this->assertEquals(array('nome'=>'1a1','idade'=>null,
+			'id'=>1),$p[1]);
+
+		$p[1] = array('nome:format(.a)'=>'1a1');
+		$this->assertTrue( !!$this->db->errors() );
+
+		$p[4] = array('aa:format(.a)'=>'1a1');
+		$this->assertTrue( !!$this->db->errors() );
+
+		$err = false;
+		try{
+			$p[1] = array('nome:format'=>'1a1');
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+
+		$err = false;
+		try{
+			$p[1] = array('nome:format(.+)');
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+	}
+
+	// serialize
+	public function test013(){
+		$p = $this->db->pessoa;
+		$p->truncate();
+		$p[] = array('nome:serialize'=>array('a'=>'b'));
+		$this->assertEquals(array('a'=>'b'),
+			unserialize($p[1]['nome']));
+
+		$err = false;
+		try{
+			$p[1] = array('nome:serialize');
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
+	}
+	
+	// text, date_time
 }

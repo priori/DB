@@ -545,6 +545,9 @@ class DB{
 	public function echo_queries(){
 		return $this->echo_queries;
 	}
+	public function date_format(){
+		return 'dd/mm/yyyy';
+	}
 
 	public function close(){
 		if( $this->mode === DB::MYSQLI ){

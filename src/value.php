@@ -3,26 +3,20 @@
 
 if( isset($attr['sql'])  ){
 	if( is_string($attr['sql']) ){
-		
-		if( is_string($value) ){
+		// validar valor para chave com macro sql
+		$numeric = is_numeric($value);
+		if( !is_array($value) ){
 			$value = array( $value );
-		}
-		$numeric = false;
-		if( is_numeric($value) ){
-			$value = array( $value );
-			$numeric = true;
-		}
-		// se nao for array, error!
-		if( !is_array( $value) ){
-			error();
 		}
 		$sql = $attr['sql']; // & ?
-		if( $numeric ){
-			foreach( $value as $c => $v ){
-				$value[$c] = $v; 
-			}
-		}else{
-			foreach( $value as $c => $v ){
+		foreach( $value as $c => $v ){
+			if( is_bool($v) ){
+				$value[$c] = $v?'1':'0'; 
+			}elseif( is_numeric($v) ){
+				$value[$c] = ''.$v; 
+			}elseif( is_array($v) or is_object($v) or is_resource($v) ){
+				$this->db->fire_error("Valor inválido!");
+			}else{
 				$value[$c] = '\''.$this->db->escape($v).'\''; 
 			}
 		}
@@ -34,79 +28,108 @@ if( isset($attr['sql'])  ){
 		return true;
 	}
 	
-}else if( $value === NULL ){
-	$value = 'NULL';
+}elseif( isset($attr['now']) ){
+	if( isset($attr['content']) )
+		$this->db->fire_error("Ao usar a macro :now não especifique um valor");
+	if( $attr['now'] !== true )
+		$this->db->fire_error("A macro :now não espera parametros.");
+	$value = 'NOW()';
 	$attr['sql'] = true;
+	return true;
 
 }elseif( isset($attr['serialize']) ){
 	$value = serialize($value);
+	return true;
+
+}else if( $value === NULL ){ // deveria ser diferenciado de quando não foi passado valor
+	$value = 'NULL';
+	$attr['sql'] = true;
+	return true;
 
 }else{
 	// if has many ...
 	// else
+	if( is_array($value) or is_object($value) or is_resource($value) ){
+		$this->db->fire_error("Tipo inválido para valor!");
+	}
+	// upper_case upper trim lower_case lower
+	// if( isset($attr['trim']) ){ 
+	// 	$value = trim($value);
+	// }
+	// if( isset($attr['upper_case']) or isset($attr['upper']) ){ 
+	// 	$value = strtoupper($value);
+	// }
+	// if( isset($attr['lower_case']) or isset($attr['lower']) ){ 
+	// 	$value = strtolower($value);
+	// }
 	
-	if( isset($attr['trim']) ){ 
-		$value = trim($value);
-	}
-	if( isset($attr['upper_case']) or isset($attr['upper']) ){ 
-		$value = strtoupper($value);
-	}
-	if( isset($attr['lower_case']) or isset($attr['lower']) ){ 
-		$value = strtolower($value);
-	}
-	
-	$type = false;
-	if( isset($attr['int']) ){
-		$valid = is_int($value) or ((int)$value).'' == ''.$value;
-		$this->add_error($this->get_alias_name($attr),'not_int');
-		$type = true;
-	}
-	if( isset($attr['date']) ){
-		if( $type )error();
-		if( !is_string($attr['date']) )error();
-		
-		$aux = $this->sql_date($value,$attr['date']);
-		if( $aux === false ){
-			$this->add_error($this->get_alias_name($attr),'format_date');
+	if( isset($attr['int']) or isset($attr['integer']) ){
+		$valid = (is_int($value) or ((int)$value).'' == ''.$value);
+		if( !$valid ){
+			$this->add_error($attr[0],'not_int');
+			return false;
 		}
-		$value = $aux;
+		$attr['sql'] = true;
+		return true;
 
-		
-		$type = true;
-	}
-	if( isset($attr['text']) ){
-		if( $type )error();
+	}elseif( isset($attr['numeric']) or isset($attr['num']) ){
+		$valid = is_numeric($value);
+		if( !$valid ){
+			$this->add_error($attr[0],'not_num');
+			return false;
+		}
+		$attr['sql'] = true;
+		return true;
+
+	}elseif( isset($attr['date']) ){
+		if( $attr['date'] === true ){
+			$aux = $this->sql_date($value,$this->db->date_format());
+		}elseif( is_string($attr['date']) ){
+			$aux = $this->sql_date($value,$attr['date']);
+		}
+		if( $aux === false ){
+			$this->add_error($attr[0],'format_date');
+			return false;
+		}else{
+			$value = $aux;
+		}
+		return true;
+
+	}elseif( isset($attr['format']) ){
+		if( !preg_match('/^'.$attr['format'].'$/',$value) ){
+			$this->add_error($attr[0],'format');
+			return false;
+		}
+		return true;
+
+	}elseif( isset($attr['text']) ){
 		if( !ereg('^[0-9]+-[0-9]+$',$attr['text']) )
-			die('não é assim que se faz');
+			$this->db->fire_error(':text deve ser usado junto com tamanho ex:text(1-100)');
 		$text = explode('-',$attr['text']);
 		$b = (int)$text[0];
 		$t = (int)$text[1];
 		if( $b > $t ){
-			die('o maior tem que ser maior que o menor');
+			$this->db->fire_error('Em :text o maior tem que ser maior que o menor.');
 		}
 		if( strlen($value)>$t ){
-			// error
 			$this->add_error($this->get_alias_name($attr),'grande');
+			return false;
 		}
 		if( strlen($value)<$b ){
 			$this->add_error($this->get_alias_name($attr),'pequeno');
+			return false;
 		}
-		$type = true;
-	}
-	if( isset($attr['time']) ){
-		if( $type )error();
-		$type = true;
-	}
-	
-	
-	if( $value === false ){
+		return true;
+
+	}elseif( $value === false ){
 		$value = "0";
 		return true;
-	}
-	if( $value === true ){
+	}elseif( $value === true ){
 		$value = "1";
 		return true;
+	}else{
+		$value = $this->db->escape( $value );
+		return true;
 	}
-	$value = $this->db->escape( $value );
 }
 return false;
