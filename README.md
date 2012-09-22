@@ -1,26 +1,28 @@
-DB 
+DB
 =============
 
 Esta é uma biblioteca para manuseio de Banco de Dados.
 
-Nela não é nescessário criar classes para refletir tabelas, nem seguir padrões de organização de arquivos e pastas. A biblioteca busca ser o menos burocrática possível.
-
-Suas vantagens são visíveis mesmo antes de se especificar os modelos.
-Apesar de recomendado que se use ela junto a alguma framework, ela pode facilmente ser utilizada fora de uma camada de modelo bem definida.  
-
-Desenvolvida com TDD e valorizando sempre a performance.
-
-Sem erros genéricos do tipo "Argumento inválido". Todos os argumentos são exastivamentes checados.
-As mensagens de erro são grande preocupação. Elas devem ser claras, específicas. 
-Ex: Macro :now não deve ser usada com valor. Ou: Modelo com chave múltipla, utilize o método add caso queira inserir valores.
-
-Pequena quantidade de métodos diminuindo a curva de aprendizado e facilitando a compreeção de seu escopo por completo.
-Junto com índices de array é utilizado macros agregando de forma simples poder ao seu código.
+Junto a índices de array utiliza se macros agregando de forma simples poder ao seu código.
 
 	$db->pessoa[5] = array(
 	  'code:format([a-Za-z]+)' => 'adssdfasdfqerf',
 	  'ultima_visita:date(dd/mm/yyyy)' => '10/05/2013'
 	);
+
+Encapsulada ao máximo. Toda a utilização é feita junto ao objecto DB.
+
+Sem burocracia.
+Pequena quantidade de métodos diminuindo a curva de aprendizado e facilitando a compreensão de seu escopo completo.
+Nela não é necessário criar classes para refletir tabelas, nem seguir padrões de organização de arquivos e pastas.
+Mas ainda assim podemos especificar modelos bem definidos para os dados e estender suas funcionalidades internas.
+E assim é facilmente alocada em qualquer projeto mesmo que não haja uma camada de modelo bem definida.
+
+Segura e rápida: Desenvolvida com TDD e valorizando sempre a performance.
+
+Sem mistério e sem erros genéricos do tipo "Argumento inválido". Todos os argumentos são exaustivamente checados.
+As mensagens de erro são grande preocupação. Elas devem ser claras e específicas. 
+Ex: Macro :now não deve ser usada com valor. Ou: Modelo com chave múltipla, utilize o método add caso queira inserir valores.
 
 Exemplos
 -------
@@ -46,7 +48,7 @@ Exemplos
 	  'data:created_at',
 	  'ultima_modificacao:updated_at',
 	   // fk(pessoa_id) é o padrão, então na verdade não seria necessário especificar
-	  'tel:many(telefone):fk(pessoa_id)', 
+	  'tel:many(telefone):fk(pessoa_id)',
 	  'chave1:pk', // chaves multiplas
 	  'chave2:pk
 	);
