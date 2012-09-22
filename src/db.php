@@ -22,7 +22,7 @@ class DB{
 
 	private $echo_queries = false;
 
-	public function __set( $a, $b ){
+	function __set( $a, $b ){
 		if( $a === 'echo_queries' ){
 			if( $b !== true and $b !== false and $b !== DB::PLAIN_TEXT ){   
 				$this->fire_error( "echo_queries espera um valor do tipo boleano!" );   
@@ -50,7 +50,7 @@ class DB{
 	}
 
 
-	public function fire_error( $err ){
+	function fire_error( $err ){
 		if( $this->error_mode == 1 ){
 			$bt = debug_backtrace();
 			$d = false;
@@ -129,7 +129,7 @@ class DB{
 	// mysql host:localhost user:root password:'' 
 	// postgres host:localhost user:postgres dbname:postgres
 	// todo formas de especificar socket
-	public function __construct($h='localhost',$u='root',$p='')
+	function __construct($h='localhost',$u='root',$p='')
 	{
 		static $alowed_args = array(
 			'host' => true, 'user' => true, 'password' => true,
@@ -242,11 +242,11 @@ class DB{
 
 	private $smart_rollback = false;
 
-	public function _query( $q ){
+	function _query( $q ){
 		return $this->__query( $q );
 	}
 	private $last_return;
-	public function __query( &$q ){
+	function __query( &$q ){
 
 		// lidando com as transactions
 		// esperando o $db->end();
@@ -319,23 +319,8 @@ class DB{
 		$this->last_return = 2;
 		return new DB_Result( $r, $this->link, $this->mode );
 	}
-	// caso se esteja usando mysql ainda é possível fazer isso via SQL
-	// usando: USE databasename
-	// public function select_db( $db ){
-	// 	if( $this->mode !== DB::MYSQL and $this->mode !== DB::MYSQLI ){
-	// 		$this->fire_error('Caso nao esteja usando MySQL selecione o banco de dados ao contectar!');
-	// 	}
-	// 	$this->db_selected = $db;
-	// 	if( $this->mode === DB::MYSQLI ){
-	// 		$r = $this->link->select_db($db);
-	// 	}else{
-	// 		$r = mysql_select_db($db,$this->link);
-	// 	}
-	// 	if( !$r )
-	// 		$this->fire_error('Nao foi possivel conectar a esta base!');
-	// }
 
-	public function last_id(){
+	function last_id(){
 		if( $this->mode === DB::POSTGRESQL ){
 			$this->fire_error("PostgreSQL não funciona assim!");
 		}else{ //if( $this->last_return === true ){
@@ -345,10 +330,10 @@ class DB{
 				return mysql_insert_id($this->link);
 		}
 	}
-	public function escape($s){
+	function escape($s){
 		return $this->_escape( $s );
 	}
-	public function _escape(&$s){
+	function _escape(&$s){
 		if( $this->mode === DB::MYSQLI ){
 			return $this->link->real_escape_string($s);
 		}elseif( $this->mode === DB::MYSQL ){
@@ -362,7 +347,7 @@ class DB{
 		}
 	}
 	// e o collation???
-	public function charset(){
+	function charset(){
 		if( $this->mode === DB::POSTGRESQL ) 
 			return pg_client_encoding( $this->link );
 		if( $this->mode === DB::MYSQLI ){
@@ -376,7 +361,7 @@ class DB{
 
 	// ou schema
 	private $models = array();
-	public function __get($n){
+	function __get($n){
 		if( $this->mode == DB::POSTGRESQL ){
 			if( !isset($this->models[$n]) ){
 				$this->models[$n] = new Schema($this,$n,null,$this->mode);
@@ -391,7 +376,7 @@ class DB{
 
 
 	private $transaction_count = 0;
-	public function begin( $b = false ){
+	function begin( $b = false ){
 		if( $b === true ){
 			$r;
 			if( !$this->transaction_count )
@@ -406,10 +391,10 @@ class DB{
 			}
 		}
 	}
-	public function rollback(){
+	function rollback(){
 		return $this->_query('ROLLBACK');
 	}
-	public function commit( $b = false ){
+	function commit( $b = false ){
 		if( $b === true ){
 			$this->transaction_count--;
 			if( !$this->transaction_count ){
@@ -432,10 +417,10 @@ class DB{
 			}
 		}
 	}
-	public function end(){
+	function end(){
 		return $this->commit(true);
 	}
-	public function dead_transaction(){
+	function dead_transaction(){
 		return !!($this->transaction_count and ($this->smart_rollback or $this->_has_validation_error));
 	}
 
@@ -443,14 +428,14 @@ class DB{
 	private $validation_errors = false;
 	public $_has_validation_error = false;
 	private $_first_query_with_error = false;
-	public function errors(){
+	function errors(){
 		$a = func_get_args();
 		if( count($a) and $this->validation_errors )
 			return $this->validation_errors->messages( $a );
 		return $this->validation_errors;
 	}
 
-	public function _add_error( $model, $field, $err ){
+	function _add_error( $model, $field, $err ){
 		if( !$this->validation_errors ){
 			$this->validation_errors = new ErrorList();
 		}
@@ -469,7 +454,7 @@ class DB{
 	}
 	private $trans_error = false;
 	private $trans_errno = false;
-	public function db_error(){
+	function db_error(){
 		if( $this->trans_errno ){
 			return $this->trans_error;
 		}
@@ -481,7 +466,7 @@ class DB{
 			return pg_last_error($this->link);
 		}
 	}
-	public function db_errno(){
+	function db_errno(){
 		if( $this->trans_errno ){
 			return $this->trans_errno;
 		}
@@ -494,7 +479,7 @@ class DB{
 	}
 
 
-	public function query( $a ){
+	function query( $a ){
 		if( !is_array($a) )
 			$a = func_get_args();
 		$q = array_shift($a);
@@ -511,12 +496,12 @@ class DB{
 	}
 
 
-	public function fetch(){
+	function fetch(){
 		$r = $this->query(func_get_args());
 		return $r->fetch();
 	}
 
-	public function fetch_all(){
+	function fetch_all(){
 		$r = $this->query(func_get_args());
 		$a = array();
 		while( $aux = $r->fetch() ){
@@ -524,7 +509,7 @@ class DB{
 		}
 		return $a;
 	}
-	public function fetch_col(){
+	function fetch_col(){
 		$r = $this->query(func_get_args());
 		while( $aux = $r->fetch() ){
 			foreach( $aux as $v ){
@@ -532,20 +517,20 @@ class DB{
 			}
 		}
 	}
-	public function link(){
+	function link(){
 		return $this->link;
 	}
-	public function error_mode(){
+	function error_mode(){
 		return $this->error_mode;
 	}
-	public function echo_queries(){
+	function echo_queries(){
 		return $this->echo_queries;
 	}
-	public function date_format(){
+	function date_format(){
 		return 'dd/mm/yyyy';
 	}
 
-	public function close(){
+	function close(){
 		if( $this->mode === DB::MYSQLI ){
 			return $this->link->close();
 		}elseif( $this->mode === DB::MYSQL ){

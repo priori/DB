@@ -16,7 +16,7 @@ class Model implements arrayaccess, Countable{
 	private $b;
 	private $schema;
 
-	public function Model( &$link, &$name, $args = false, $mode = 0, $schema = false ){
+	function Model( &$link, &$name, $args = false, $mode = 0, $schema = false ){
 		$this->mode = $mode;
 		$this->db =& $link;
 		$this->alias =& $name;
@@ -33,18 +33,18 @@ class Model implements arrayaccess, Countable{
 		}
 	}
 
-	public function __toString(){
+	function __toString(){
 		if( $this->schema )
 			return $this->a.$this->schema.$this->b.'.'.$this->a.$this->name.$this->b;
 		else
 			return $this->a.$this->name.$this->b;
 	}
-	public function pk(){
+	function pk(){
 		return $this->pk;
 	}
 
 	// set, update
-	public function set( $id, $args ){
+	function set( $id, $args ){
 		if( !is_array($args) ){
 			$this->db->fire_error('Argumento inválido, para valores espera-se um array');
 		}
@@ -91,7 +91,7 @@ class Model implements arrayaccess, Countable{
 	}
 
 
-	public function _set(&$id, &$attrs){
+	function _set(&$id, &$attrs){
 		$vals = false;
 		if( !$this->validate($attrs,$vals,'set') ){ // e o replace?
 			return;
@@ -147,12 +147,12 @@ class Model implements arrayaccess, Countable{
 	}
 
 	// add, insert
-	public function add( $e ){
+	function add( $e ){
 		// sem multiplas insersoes por enquanto
 		// if( $e2 !== false ){ $e2=false; $e=func_get_args(); }
 		return $this->_add( $e, false );
 	}
-	public function replace( $e ){
+	function replace( $e ){
 		return $this->_add( $e, true );
 	}
 
@@ -192,7 +192,7 @@ class Model implements arrayaccess, Countable{
 	}
 	// tá errado, a ideia era acumular os erros
 	// só está acumulando erros de uma mesma coluna (indice)
-	public function validate_macros( &$e, $with_value ){
+	function validate_macros( &$e, $with_value ){
 		$msg = array();
 		$macro_need_value = true;
 		$typed = 0;
@@ -283,7 +283,7 @@ class Model implements arrayaccess, Countable{
 	}
 
 
-	public function _add(&$e,$replace=false){
+	function _add(&$e,$replace=false){
 		if( !is_array($e) ){
 			$this->db->fire_error('Valor inválido, para inserção de valores espera-se um array');
 		}
@@ -295,7 +295,7 @@ class Model implements arrayaccess, Countable{
 		return $this->__add($e,$replace);
 	}
 
-	public function __add(&$e,$replace=false){
+	function __add(&$e,$replace=false){
 		$q = array();
 		if( $replace===true )
 			$q[] = 'REPLACE INTO ';
@@ -375,12 +375,12 @@ class Model implements arrayaccess, Countable{
 		return $r;
 	}
 
-	public function build_args( &$args, &$parameters=false ){
+	function build_args( &$args, &$parameters=false ){
 		include 'build_args.php';
 	}
 
 	// remove
-	public function remove($id){
+	function remove($id){
 		$t = $this->__toString();
 		$sql = array("DELETE FROM $t ");
 		if( is_array($this->pk) and !is_array($id) ){
@@ -401,7 +401,7 @@ class Model implements arrayaccess, Countable{
 	}
 
    // get
-	public function get($id){
+	function get($id){
 		$t = $this->__toString();
 		$sql = array("SELECT * FROM $t ");
 		if( is_array($this->pk) and !is_array($id) ){
@@ -422,8 +422,7 @@ class Model implements arrayaccess, Countable{
 		return $r->fetch();
 	}
 
-
-	public function remove_where( $w ){
+	function remove_where( $w ){
 		// $w =& Decoder::decode_array( $w );
 		// $this->validate_where( $w );
 		$t = $this->__toString();
@@ -431,7 +430,7 @@ class Model implements arrayaccess, Countable{
 		$this->sql_where( $q, $w );
 		return $this->db->_query(implode($q));
 	}
-	public function get_where( $w ){
+	function get_where( $w ){
 		// $w =& Decoder::decode_array( $w );
 		// $this->validate_where( $w );
 		$t = $this->__toString();
@@ -440,7 +439,7 @@ class Model implements arrayaccess, Countable{
 		$r = $this->db->_query(implode($q));
 		return $r->fetch();
 	}
-	public function set_where( $id, $v ){
+	function set_where( $id, $v ){
 		$this->_set_where( $id, $v );
 	}
 
@@ -453,7 +452,7 @@ class Model implements arrayaccess, Countable{
 
 
 
-	public function all(){
+	function all(){
 		$t = $this->__toString();
 		return $this->db->_query("SELECT * FROM $t");
 	}
@@ -572,7 +571,7 @@ class Model implements arrayaccess, Countable{
 
 
 	// array access
-	public function offsetSet($id,$val){
+	function offsetSet($id,$val){
 		if( $id === NULL ){
 			return $this->_add( $val );
 		}else{
@@ -585,7 +584,7 @@ class Model implements arrayaccess, Countable{
 			return $this->_set( $id, $val );
 		}
 	}
-	public function offsetUnset($id){
+	function offsetUnset($id){
 		$t = $this->__toString();
 		$sql = array("DELETE FROM $t ");
 		$this->sql_where_id_eq( $sql, $id );
@@ -593,14 +592,14 @@ class Model implements arrayaccess, Countable{
 	}
 
    // get
-	public function offsetGet($id){
+	function offsetGet($id){
 		$t = $this->__toString();
 		$sql = array("SELECT * FROM $t ");
 		$this->sql_where_id_eq( $sql, $id );
 		$r = $this->db->_query(implode('',$sql));
 		return $r->fetch();
 	}
-	public function offsetExists($id){
+	function offsetExists($id){
 		$t = $this->__toString();
 		$pk &= $this->pk;
 		if( is_array($pk) )
@@ -610,17 +609,17 @@ class Model implements arrayaccess, Countable{
 		$r = $this->db->_query(implode('',$sql));
 		return $r->num_rows() > 0;
 	}
-	public function count(){
+	function count(){
 		$t = $this->__toString();
 		$r = $this->db->_query("SELECT COUNT(*) AS c FROM $t");
 		$r = $r->fetch();
 		return $r['c'];
 	}
-	public function truncate(){
+	function truncate(){
 		$t = $this->__toString();
 		return $this->db->_query("TRUNCATE $t");
 	}
-	public function __set( $a, $b ){
+	function __set( $a, $b ){
 		if( $a === 'pk' ){
 			if( is_array($b) ){
 				$pkt = array();

@@ -1,175 +1,84 @@
-DB Priori
+DB 
 =============
 
-DB Priori é uma biblioteca para manuseio de Banco de Dados (por enquanto só MySQL). O desenvolvimento é fortemente ligado a testes de performance. Não é nescessário criar classes para refletir tabelas, nem seguir um padrão para arquivos e pastas. Por isto penso que a ideologia dela é ser menos burocrática possível.
+Esta é uma biblioteca para manuseio de Banco de Dados.
 
-Por enquanto algumas funcionalidades não estam prontas (set_model e algumas chegagens de erros). Mas dentro uma ou duas semanas pretendo colocar a primeira versão disponivel aqui.
+Nela é nescessário criar classes para refletir tabelas, nem seguir padrões de organização de arquivos e pastas. A biblioteca busca ser o menos burocrática possível.
 
-O Básico
--------
+Suas vantagens são visíveis mesmo antes de se especificar os modelos.
+Apesar de recomendado que se use ela junto a alguma framework, ela pode facilmente ser utilizada fora de uma camada de modelo bem definida.  
 
-Conectando
+Desenvolvida com TDD e valorizando sempre a performance.
+
+Sem erros genéricos do tipo "Argumento inválido". Todos os argumentos são exastivamentes checados.
+As mensagens de erro são grande preocupação. Elas devem ser claras, específicas. 
+Ex: Macro :now não deve ser usada com valor. Ou: Modelo com chave múltipla, utilize o método add caso queira inserir valores.
+
+Pequena quantidade de métodos diminuindo a curva de aprendizado e facilitando a compreeção de seu escopo por completo.
+Junto com índices de array é utilizado macros agregando de forma simples poder ao seu código.
+	$db->pessoa[5] = array(
+	  'code:format([a-Za-z]+)' => 'adssdfasdfqerf',
+	  'ultima_visita:date(dd/mm/yyyy)' => '10/05/2013'
+	);
+
+Exemplos
 -------
 
 	<?php
-	$db = new DB();
-	// valores padrão são
-	// 'localhost', 'root' e ''
-	$db->select_db('test');
-	Queries
-	<?php
-	$db->query('
-	  SELECT * FROM pessoa
-	  WHERE nome = ?
-	', $_POST['nome'] );
-
-Atualizando
--------
-
-	<?php
-	$db->pessoa->set( $id, array(
-	  'nome' => 'Minha Casa',
-	  'data_de_nacimento' => '1984-07-08',
-	  'casa_id' => 5
+	$db = new DB; // padrão é mysql, login root e sem senha
+	$db->pessoa[] = array(
+	  'primeiro_nome' => 'Leonardo',
+	  'sobrenome' => 'Silva'
+	);
+	unset( $db->pessoa[1] );
+	$db->pessoa[2] = array(
+	  'sobrenome' => 'Outro',
+	  'idade:sql( ? + ? )' => array( 10, 5 )
+	);
+	$db->pessoa[] = array(
+	  'nome:text(1-100)' => 'Leonardo',
+	  'idade:int'        => 5
+	);
+	$db->pessoa->set_model(
+	  'nome:text(1-100)',
+	  'idade:int',
+	  'data:created_at',
+	  'ultima_modificacao:updated_at',
+	   // fk(pessoa_id) é o padrão, então na verdade não seria necessário especificar
+	  'tel:many(telefone):fk(pessoa_id)', 
+	  'chave1:pk', // chaves multiplas
+	  'chave2:pk
+	);
+	$r = $db->pessoa->set(array(5,10), array( // chave multipla
+	  'nome' => 'Lasdhflajksdf'
 	));
-
-Inserindo Dados
--------
-
-	<?php
-	$db->pessoa->add(array(
-	  'nome' => 'Minha Casa',
-	  'data_de_nacimento' => '1984-07-08',
-	  'casa_id' => 5
-	));
-
-Removendo
--------
-
-	<?php
-	$db->pessoa->remove( $id );
-
-Resgatando
--------
-
-	<?php
-	$db->pessoa->get( $id );
-
-WHERE
--------
-
-	<?php
-	$db->pessoa->set( array(
-		 'id' => $id,
-		 'pontos' => 35
-	  ), array(
-		 'nome' => 'Minha Casa'
-	));
-	$db->pessoa->remove(array( 'pessId' => $id ));
-	$db->pessoa->get(array( 
-	  'pessoaId' => $id,
-	  'OR',
-	  'pessoaId' => $id2
-	));
-
-Macros
--------
-
-	<?php
-	$db->pessoa->add(array(
-	  'nome:text(1-255)' => 'Minha Casa',
-	  'data_de_nacimento:date(dd/mm/yyyy)' => 
-			'08/07/1984',
-	  'casa_id:sql( ? + 1 )' => 5,
-	  'asdfadf:sql' => 
-		 'SELECT MAX(data_de_nacimento) ... '
-	));
-
-Erros
--------
-
-	<?php
-	$r = $db->pessoa->add(...);
 	if( !$r ){
-		echo "Erros no nome: ";
-		foreach( $db->errors('nome') as $v )
-			echo htmlspecialchars( $v );
-		echo 'Errors em geral!';
-		foreach( $db->errors() as $v )
-			echo htmlspecialchars( $v );
+	  $err = $db->errors();
+	  if( $modo1 ){
+	    echo $err;
+	    // <ul><li>O campo assim assim deve ser assim assim!</li></ul>
+	  }else{
+	    foreach( $err->campo1 as $e ){
+	      if( $e->type === '...' )
+	         echo $e;
+	    }
+	  }
 	}
-
-toString
--------
-
-	<?php
-	echo $db->errors();
-	// <ul>
-	//   <li>erro 1</li> 
-	//   <li>erro 2</li>
-	// </ul>
-	echo $db->query('SELECT ...');
-	// <table><thead><th>coluna 1 ...
-
-Modo Array
--------
-
-	<?php
-	$db->pessoa[] = array( 'nome' => 'Leonardo' );
-	$db->pessoa[ 5 ] = array( 'nome' => "Filipe" );
-	$eu = $db->pessoa[ 5 ];
-	unset($db->pessoa[3]);
-
-has many
--------
-
-	<?php
-	$r = $db->pessoa->add(array(
-		'nome' => 'Leo',
-		'telefone' => array(
-			array('numero' => 165165),
-			array('numero' => 48945132)
-		)
-	));
-	// utiliza transactions
-	// telefone:many ou :has_many(telefone)
-	// para setar chave estrangeira :fk(col)
-	// utiliza transactions
-	// casa:one ou :belongs_to(casa)
-	// para setar chave estrangeira :fk(col)
-
-Listando
--------
-
-	<?php
-	$r = $db->pessoa->find(array(
-		'find_by' => 'nome',
-		'find' => $_GET['q'],
-		'page' => $_GET['page']
-	));
+	$db->pessoa[] = array(
+	  'nome' => 'ASDFasdf',
+	  'tel' => array(
+	    array('numero'=>187903,'ddd'=>12),
+	    array('numero'=>184551,'ddd'=>12),
+	    array('numero'=>871111,'ddd'=>13)
+	  )
+	);
+	$r = $db->pessoa->find(array('id:gt' => 10, 'OR', 'id:lt' => 5));
 	foreach( $r as $p ){
-		echo $p['nome'].' '.$p['idade'];
-		echo '<br/>';
+	  // $p é um array
 	}
-	if( $r->has_next_page() )
-		echo '...';
-	if( $r->has_previous_page() )
-		echo '...';
-	foreach( $db->query('SELECT ...' as $v ){
-	  echo $v['aasdf'];
-	  echo '<br/>';
-	}
-	$r = $db->pessoa->find(array(
-		'fields' => array('nome','id','idade'),
-		'where' => array( 'idade:gt' => 10 )
+	$db->pessoa->save(array(
+	  'id' => 5, // como id foi especificado a entrada irá ser atualizada
+	  'name' => 'Novo Nome'
 	));
-
-comportamento padrão dos campos e das tabelas
--------
-
-	<?php
-	$r = $db->set_model('pessoa',array(
-		'nome:text(1,255)',
-		'telefone:many',
-		'data_de_nacimento:text(dd/mm/yyyy)'
-	));
+	// processar post automaticamente
+	$db->pessoa->post('nome','remove_pessoa:remove','idade');

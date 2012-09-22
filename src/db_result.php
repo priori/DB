@@ -6,12 +6,12 @@ class DB_Result implements arrayaccess, Countable, Iterator{
 	private $db_r;
 	private $r;
 	private $mode;
-	public function DB_Result( &$r, &$db_r, $mode ){
+	function DB_Result( &$r, &$db_r, $mode ){
 		$this->mode = $mode;
 		$this->db_r =& $db_r;
 		$this->r =& $r;
 	}
-	public function fetch(){
+	function fetch(){
 		if( $this->mode === DB::MYSQLI ){
 			$r = $this->r->fetch_assoc();
 		}elseif( $this->mode === DB::MYSQL ){
@@ -26,7 +26,7 @@ class DB_Result implements arrayaccess, Countable, Iterator{
 		}
 		return $r;
 	}
-	public function count(){
+	function count(){
 		if( $this->mode === DB::MYSQLI ){
 			return $this->r->num_rows;
 		}elseif( $this->mode === DB::MYSQL ){
@@ -35,7 +35,7 @@ class DB_Result implements arrayaccess, Countable, Iterator{
 			return pg_num_rows($this->r);
 		}
 	}
-	public function data_seek($c){
+	function data_seek($c){
 		if( $this->mode === DB::MYSQLI ){
 			$this->r->data_seek($c);
 		}elseif( $this->mode === DB::MYSQL ){
@@ -45,7 +45,7 @@ class DB_Result implements arrayaccess, Countable, Iterator{
 		}
 	}
 	
-	public function __toString(){
+	function __toString(){
 		$r = array();
 		$b = false;
 		$r[] = '<table>';
@@ -92,13 +92,13 @@ class DB_Result implements arrayaccess, Countable, Iterator{
 	function valid() {
 		return is_array($this->current);
 	}
-	public function offsetSet($k,$val){
+	function offsetSet($k,$val){
 		$this->fire_error('Não permite mudança.');
 	}
-	public function offsetUnset($k){
+	function offsetUnset($k){
 		$this->fire_error('Não permite mudança.');
 	}
-	public function offsetGet($k){
+	function offsetGet($k){
 		if( $k.'' === ''.((int)$k) and $k >= 0 and $this->count() > $k ){
 			$this->data_seek($k);
 			$r = $this->fetch();
@@ -107,17 +107,8 @@ class DB_Result implements arrayaccess, Countable, Iterator{
 		}
 		$this->fire_error('Não há valor para esta chave.');
 	}
-	public function offsetExists($k){
+	function offsetExists($k){
 		if( $k.'' === ''.((int)$k) )
 			return $k >= 0 and $this->count() > $k;
 	}
 }
-
-// ArrayAccess
-// offsetExists
-// offsetSet
-// offsetGet
-// offsetUnset
-
-
-
