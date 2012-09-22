@@ -3,7 +3,7 @@ DB
 
 Esta é uma biblioteca para manuseio de Banco de Dados.
 
-Nela é nescessário criar classes para refletir tabelas, nem seguir padrões de organização de arquivos e pastas. A biblioteca busca ser o menos burocrática possível.
+Nela não é nescessário criar classes para refletir tabelas, nem seguir padrões de organização de arquivos e pastas. A biblioteca busca ser o menos burocrática possível.
 
 Suas vantagens são visíveis mesmo antes de se especificar os modelos.
 Apesar de recomendado que se use ela junto a alguma framework, ela pode facilmente ser utilizada fora de uma camada de modelo bem definida.  
