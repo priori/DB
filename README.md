@@ -16,6 +16,7 @@ Ex: Macro :now não deve ser usada com valor. Ou: Modelo com chave múltipla, util
 
 Pequena quantidade de métodos diminuindo a curva de aprendizado e facilitando a compreeção de seu escopo por completo.
 Junto com índices de array é utilizado macros agregando de forma simples poder ao seu código.
+
 	$db->pessoa[5] = array(
 	  'code:format([a-Za-z]+)' => 'adssdfasdfqerf',
 	  'ultima_visita:date(dd/mm/yyyy)' => '10/05/2013'
