@@ -465,6 +465,15 @@ class Test extends PHPUnit_Framework_TestCase {
 		}
 		$this->assertTrue( $err );
 
+		// não se pode usar duas macros que definem tipo ao mesmo tempo
+		// format, sql pode ser usada com qualquer macro
+		$err = false;
+		try{
+			$p[] = array('nome:int:text'=>2);
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
 		$err = false;
 		try{
 			$p[] = array('nome:date:integer'=>2);
@@ -473,6 +482,7 @@ class Test extends PHPUnit_Framework_TestCase {
 		}
 		$this->assertTrue( $err );
 
+		// isso pode
 		$err = false;
 		try{
 			$p[] = array('nome:sql:int'=>20);
@@ -481,6 +491,26 @@ class Test extends PHPUnit_Framework_TestCase {
 		}
 		$this->assertTrue( !$err );
 		$this->assertEquals('20',$p[1]['nome']);
+		// macro que define tipo com serialize
+		// pode gerar erro de validação/formatação, mas no final o valor será serializado de qualquer forma
+		// macro :array, :object, etc seria interessante, mas não teremos por enquanto
+		$err = false;
+		try{
+			$p[] = array('nome:sql:int'=>20);
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( !$err );
+		$this->assertEquals('20',$p[1]['nome']);
+
+		// now deve ser sempre usado sozinho
+		$err = false;
+		try{
+			$p[] = array('nome:text:now');
+		}catch(Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue( $err );
 	}
 	
 	// date
@@ -621,7 +651,16 @@ class Test extends PHPUnit_Framework_TestCase {
 			$err = true;
 		}
 		$this->assertTrue($err);
+
+		$err = false;
+		try{
+			$p[] = array('nome:now(a)');
+		}catch( Exception $e ){
+			$err = true;
+		}
+		$this->assertTrue($err);
 	}
+
 	// format
 	public function test012(){
 		$p = $this->db->pessoa;
@@ -660,7 +699,6 @@ class Test extends PHPUnit_Framework_TestCase {
 		$p[] = array('nome:serialize'=>array('a'=>'b'));
 		$this->assertEquals(array('a'=>'b'),
 			unserialize($p[1]['nome']));
-
 		$err = false;
 		try{
 			$p[1] = array('nome:serialize');
@@ -668,7 +706,26 @@ class Test extends PHPUnit_Framework_TestCase {
 			$err = true;
 		}
 		$this->assertTrue( $err );
+		// set e add funciona igual
+		$p = $this->db->pessoa;
+		$p->truncate();
+		$v = array('a'=>'b');
+		$p[] = array();
+		$p[1] = array('nome:serialize'=> $v );
+		$p[]  = array('nome:serialize'=> $v );
+		$this->assertEquals($p[1]['nome'], $p[2]['nome'] );
 	}
 	
 	// text, date_time
+	
+	// validating simple where (multiple pk)
+	// get, set, remove 
+	public function test014(){
+	}
+
+	// where with macros 
+	// get_where, set_where, remove_where
+	// date, time, date_time, sql, int, integer, num, numeric, bool, boolean, format, now, format, parse
+	// results (find, get)
+
 }

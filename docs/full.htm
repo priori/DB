@@ -56,14 +56,6 @@ $db = new DB;</code></pre></div>
 
 
 </div><div class=entry>
-<h2 style=clear:both>DB::select_db<a id=db-select-db></a></h2>
-<div class=interface><ul>
-	<li>$db-&gt;select_db( $db_name )
-</ul></div>
-<p>Muda para base especificada. Não funciona com PostgreSQL.</p>
-<div class="item" style=""><pre><code class="php">$db-&gt;select_db("the_name");</code></pre></div>
-
-</div><div class=entry>
 <h2 style=clear:both>DB::last_id<a id=db-last-id></a></h2>
 <div class=interface><ul>
 	<li>$db-&gt;last_id()
@@ -108,8 +100,8 @@ if( $db-&gt;charset() == 'latin1' )
 </div><div class=entry>
 <h2 style=clear:both>DB::echo_queries<a id=db-echo_queries></a></h2>
 <div class=interface><ul>
-	<li>$db-&gt;echo_mode = true | DB::PLAIN_TEXT
-	<li>$error_mode = $db-&gt;echo_mode()
+	<li>$db-&gt;echo_queries = true | DB::PLAIN_TEXT
+	<li>$echo_queries = $db-&gt;echo_queries()
 </ul></div>
 <p>Setando como true todas as queries executadas serão impressas na tela (Algumas queries usadas pelo socket interno podem serem desconsideradas).
 Também se pode setar a propriedade utilizando a constante DB::PLAIN_TEXT (para não se escapar caracteres html).
@@ -120,7 +112,7 @@ $db-&gt;a[] = array('b'=&gt;'b');
 
 
 </div><div class=entry>
-<h2 style=clear:both>DB::error_mode<a id=db-error_mode></a></h2>
+<h2 style=clear:both>DB::error_mode<a id=db-error-mode></a></h2>
 <div class=interface><ul>
 	<li>$db-&gt;error_mode = DB::PHP_ERROR_PARODY | DB::TRIGGER_ERROR | DB::THROW_ERROR
 	<li>$error_mode = $db-&gt;error_mode()
@@ -130,8 +122,8 @@ serem disparados com trigger_error (a unica forma que era possível antes do sup
 podem funcionar de forma similar aos erros internos, mostrando a linha, a mensagem de erro e o arquivo
 onde aconteceu o erro (não o arquivo e alinha da biblioteca, mas da aplicação que usa da biblioteca).
 </p>
-<div class="item" style=""><pre><code class="php">$db-&gt;charset = DB::PHP_ERROR_PARODY;
-$db-&gt;asdfasdf = 5; // Erro mensagem blabla, linha esta linha, arquivo este arquivo.php</code></pre></div>
+<pre><code class="php">$db-&gt;charset = DB::PHP_ERROR_PARODY;
+$db-&gt;asdfasdf = 5; // Erro mensagem blabla, linha esta linha, arquivo este arquivo.php</code></pre>
 
 
 
@@ -141,7 +133,7 @@ $db-&gt;asdfasdf = 5; // Erro mensagem blabla, linha esta linha, arquivo este ar
 	<li>$db-&gt;begin( $b )
 </ul></div>
 <p>Inicia uma transação. Se <b>true</b> é passado como parametro inicia-se a transação simples.
-Na transação simples qualquer erro resulta em rollback. Para fechar uma transação simplês use
+Na transação simples qualquer erro resulta em rollback. Para fechar uma transação simples use
 <b>end</b>.</p>
 <div class="item" style=""><pre><code class="php">$db-&gt;begin();</code></pre></div>
 
@@ -160,7 +152,7 @@ Na transação simples qualquer erro resulta em rollback. Para fechar uma transa
 </div><div class=entry>
 <h2 style=clear:both>DB::rollback<a id=db-rollback></a></h2>
 <div class=interface><ul>
-	<li>$db-&gt;rollback( $b )
+	<li>$db-&gt;rollback()
 </ul></div>
 <p>Dá um <b>ROLLBACK</b>.</p>
 <div class="item" style=""><pre><code class="php">$db-&gt;rollback();</code></pre></div>
@@ -203,6 +195,7 @@ Não todos os erros vão para este objecto, somente os de formatação de valore
 
 
 
+<!--
 </div><div class=entry>
 <h2 style=clear:both>DB::db_errno<a id=db-db-errno></a></h2>
 <div class=interface><ul>
@@ -212,6 +205,7 @@ Não todos os erros vão para este objecto, somente os de formatação de valore
 	Somente funciona com MySQL.
 </p>
 <div class="item" style=""><pre><code class="php">echo $db-&gt;db_errno(); </code></pre></div>
+-->
 
 
 
@@ -219,7 +213,7 @@ Não todos os erros vão para este objecto, somente os de formatação de valore
 <h2 style=clear:both>DB::query<a id=db-query></a></h2>
 <div class=interface><ul>
 	<li>$db-&gt;query( $sql )
-	<li>$db-&gt;query( $sql, $params_array )
+	<!-- <li>$db-&gt;query( $sql, $params_array ) to prevent xss -->
 	<li>$db-&gt;query( $sql, $a, $b, $c... )
 </ul></div>
 <p>Executa uma SQL. Os parametros podem ser passados via um <b>array</b> ou um a um como 
@@ -229,6 +223,7 @@ Não todos os erros vão para este objecto, somente os de formatação de valore
 FROM t
 WHERE t = ? AND d &gt; ?
 ',5,10);</code></pre></div>
+<!--
 <div class="item" style=""><pre><code class="php">$db-&gt;query('SELECT *
 FROM t
 WHERE t = ? AND d &gt; ?
@@ -237,6 +232,7 @@ WHERE t = ? AND d &gt; ?
 FROM t
 WHERE t = :a AND d &gt; ?
 ',array('a'=&gt;5,10));</code></pre></div>
+-->
 
 
 
@@ -244,7 +240,6 @@ WHERE t = :a AND d &gt; ?
 <h2 style=clear:both>DB::fetch<a id=db-fetch></a></h2>
 <div class=interface><ul>
 	<li>$db-&gt;fetch( $sql )
-	<li>$db-&gt;fetch( $sql, $params_array )
 	<li>$db-&gt;fetch( $sql, $a, $b, $c... )
 </ul></div>
 <p>Similar a <b>query</b>, mas retorna o primeiro valor da lista de resultado.
@@ -259,7 +254,6 @@ echo $el['name'];</code></pre></div>
 <h2 style=clear:both>DB::fetch_all<a id=db-fetch-all></a></h2>
 <div class=interface><ul>
 	<li>$db-&gt;fetch_all( $sql )
-	<li>$db-&gt;fetch_all( $sql, $params_array )
 	<li>$db-&gt;fetch_all( $sql, $a, $b, $c... )
 </ul></div>
 <p>Similar a <b>query</b>, mas o retorno é dado em forma de <b>array</b>.</p>
@@ -275,12 +269,11 @@ echo $a[1]['col1'];</code></pre></div>
 <h2 style=clear:both>DB::fetch_col<a id=db-fetch-col></a></h2>
 <div class=interface><ul>
 	<li>$db-&gt;fetch_col( $sql )
-	<li>$db-&gt;fetch_col( $sql, $params_array )
 	<li>$db-&gt;fetch_col( $sql, $a, $b, $c... )
 </ul></div>
 <p>Similar a <b>query</b>, mas retorna somente a primeira coluna da primeira linha do resultado.</p>
-<div class="item" style=""><pre><code class="php">$count = $db-&gt;fetch_col('SELECT count(*) FROM t');
-echo "$count linha(s) na tabela t";</code></pre></div>
+<pre><code class="php">$count = $db-&gt;fetch_col('SELECT count(*) FROM t');
+echo "$count linha(s) na tabela t";</code></pre>
 
 
 
@@ -406,18 +399,7 @@ echo "$count linha(s) na tabela t";</code></pre></div>
 	<li>$db-&gt;get_where()
 </ul></div>
 <p>Retorna o source ou objecto que é usado internamente pela biblioteca.
-</p>
-<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
-</div><div class=entry>
-<h2 style=clear:both>Model::add_error<a id=model-add-error></a></h2>
-<div class=interface><ul>
-	<li>$db-&gt;add_error()
-</ul></div>
-<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
-</p>
-<div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
-
-
+<pre><code class="php">$el = $db-&gt;model-&gt;get_where(array('date:gt:now'); </code></pre>
 
 
 
@@ -429,6 +411,10 @@ echo "$count linha(s) na tabela t";</code></pre></div>
 </ul></div>
 <p>Retorna o source ou objecto que é usado internamente pela biblioteca.
 </p>
+
+
+
+
 <div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
 </div><div class=entry>
 <h2 style=clear:both>Model::add_error<a id=model-add-error></a></h2>
@@ -446,9 +432,11 @@ echo "$count linha(s) na tabela t";</code></pre></div>
 </div><div class=entry>
 <h2 style=clear:both>Model::save<a id=model-save></a></h2>
 <div class=interface><ul>
-	<li>$db-&gt;save()
+	<li>$db-&gt;model-&gt;save( array() )
 </ul></div>
-<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
+<p>Com save você envia um array de valores para o modelo. 
+Se o id (ou a primary key) for especificado com um valor diferente de null, '', 0 a entrada com aquele id será atualizada.
+Caso contrário será feito uma inserção no banco de dados.
 </p>
 <div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
 
@@ -458,10 +446,18 @@ echo "$count linha(s) na tabela t";</code></pre></div>
 </div><div class=entry>
 <h2 style=clear:both>Model::post<a id=model-post></a></h2>
 <div class=interface><ul>
-	<li>$db-&gt;post()
+	<li>$db-&gt;post( $col... );
 </ul></div>
-<p>Retorna o source ou objecto que é usado internamente pela biblioteca.
-</p>
+<p>Similar ao save, mas os valores não precisam ser passados, eles serão pegos dos parametros do POST.
+<p>Para remover, não sei ainda... Estou pensando...  
+A forma mais simples seria enviar um parametro no POST com o nome remove com o id da entrada a ser removida.
+<p>Para remover de modelos com chave primária multipla. Talvez usar parametros remove[id] e remove[id2].
+<p>Seria interessante inventar alguma forma de desabilitar o remove ou configurar o remove atravez de macros.
+Assim remover elementos com chave primaria multipla poderia ser algo como:
+<p>
+$db-&gt;model-&gt;post( 'nome', 'idade', 'id:pk:remove(remove_id'), 'id2:pk:remove(remove_id2)' );<br>
+Ou:<br>
+$db-&gt;model-&gt;post( 'nome', 'idade', 'id:pk, 'id2:pk', 'id:remove(remove_id)', 'id2:remove(remove_id1)' );<br>
 <div class="item" style=""><pre><code class="php">var_dump( $db-&gt;link() ); </code></pre></div>
 
 
@@ -469,7 +465,7 @@ echo "$count linha(s) na tabela t";</code></pre></div>
 </div><div class=entry>
 <h2 style=clear:both>Model::set_model<a id=model-set-model></a></h2>
 <div class=interface><ul>
-	<li>$db-&gt;set_model()
+	<li>$db-&gt;model-&gt;set_model(array())
 </ul></div>
 <p>Retorna o source ou objecto que é usado internamente pela biblioteca.
 </p>
@@ -698,7 +694,7 @@ irá gerar erro. Caso valor estiver errado ele irá retornar false e guardará u
 					<td>col:time</td></tr>
 		<tr><td>integer (int) </td><td>não - se valor for numerico mas não inteiro parte fracionaria é truncada</td>
 					<td>n:int</td></tr>
-		<tr><td>float (numeric, num) </td><td>não</td><td>col:float</td></tr>
+		<tr><td>float (numeric, num) </td><td>usado sem parametros</td><td>col:num</td></tr>
 
 		<tr><td>text          </td><td>int ou (tamanho), int-int (range), int- (tamanho mínimo)</td>
 					<td>col:text(100)</tr>
@@ -708,10 +704,8 @@ irá gerar erro. Caso valor estiver errado ele irá retornar false e guardará u
 					<td>col:serialize</td></tr>
 		<tr><td>sql           </td><td>3 formas de usar</td>
 					<td>col:sql( 5 + ? )</td></tr>
-		<tr><td>now           </td><td>nop</td>
+		<tr><td>now           </td><td>usado sem parametros para a macro e valor para o índice</td>
 					<td>col:now</td></tr>
-		<tr><td>confirm       </td><td>nome do campo que deve ser igual a este</td>
-					<td>col:confirm(password)</td></tr>
 		
 	</tbody></table>
 <h3>WHERE</h3>
@@ -734,6 +728,14 @@ irá gerar erro. Caso valor estiver errado ele irá retornar false e guardará u
 <h4>updated_at</h4>
 <p>Coloca o valor como now se a entrada está sendo atualizado. Caso use com <b>add</b> ele é desconsidaderado. 
 	Não aceita valor.
+
+<h4>confirm</h4>
+<p>Nome do campo que deve ser igual a este. Só se pode usar com o métod post, save e set_model.
+<pre><code class="php">$db-&gt;model-&gt;save(
+  'nome', 'idade', 
+  'login', 'password',
+  'password2:confirm(password)'
+);</pre></code>
 <h4>id</h4>
 <p>Diz que aquele campo é o id. Útil em <b>save</b>, <b>save</b> e <b>set_model</b>. Se for utilizado
 em outros métodos ele irá gerar erro.<br>
@@ -745,28 +747,11 @@ em save, post, set_model, add, remove, etc.
 <h4>many</h4>
 <p>Especifica que se trata de uma relação <b>has many</b>. Caso se esteja fazendo um add, set se torna implícito 
 se o valor for um array e a macro <b>serialize</b> não estiver sendo usada.
-<h4>select update insert insert_update (idéia)</h4>
-<p>Ao especificar o modelo a macro <strong>sql </strong>não poderá ser usada, no lugar deve-se utilizar as macros <strong>select</strong>, <strong>update</strong>,  <strong>insert</strong>, <strong>insert_update</strong>. Comportamento para insert e update podem ser especificados ao mesmo tempo com <strong>insert_update</strong>.
-<p> <strong>Atenção: </strong>Se for passado <strong>update</strong> e não o <strong>insert</strong> ao se fazer um insert o modelo irá se comportar como se não houvesse a coluna. Caso se queira utilizar algum comportamento para o insert séra possível especificar  outro comportamento da coluna (atributo) separadamente. Por exemplo:
-<pre><code class="php">$db-&gt;model11-&gt;set_model(array(
-  'field:select(col1 + col2)',
-  'field:update( ? + 3)', // mesma coluna
-  'field:text(5-100)' // para o caso do insert / add
-  'field2'
-));<br>// mesma coisa seria:<br>$db-&gt;model11-&gt;set_model(array(
-  'field:select(col1 + col2):update( ? + 3)', // select e update
-  'field:text(5-100)' // para o caso do insert
-  'field2'
-));<br>// já isto funcionaria diferente:<br>$db-&gt;model11-&gt;set_model(array(
-  'field:select(col1 + col2):update( ? + 3):text(5-100)', // insert não foi definido
-  'field2'
-));
-</code></pre>
 <h4>add</h4>
-<p>Para relações <b>has many</b>. Só se pode ser utilizado nos métodos <b>set</b> e <b>set_model</b>.
+<p>Para relações <b>has many</b> (Só pode ser utilizado nos métodos <b>set</b> e <b>set_model</b>).
 A diferença do funcionamento padrão has many para o com esta macro é que valores que não estiverem especificados
 no set não serão removidos. Quando se tem certeza que todas as entradas que se relacionam estiverem especificadas
-esta macro é util para poupar o banco de dados uma operação <b>remove</b>
+esta macro é util para poupar o banco de dados uma operação <b>remove</b>.
 <p>Por exemplo, se fizermos:
 <pre><code class="php">$db-&gt;user[$id] = array(
 	'name' =&gt; 'Leo',
@@ -781,7 +766,7 @@ esta macro é util para poupar o banco de dados uma operação <b>remove</b>
 <p>Gerariamos SQLs assim:
 <pre><code class="sql">BEGIN;
 INSET INTO user ( name, tel ) VALUES ( 5, 99 );
-REMOVE tel WHERE id NOT IN (5,99) AND user_id = 7; -- case 7 is the lasted id
+REMOVE tel WHERE id NOT IN (5,99) AND user_id = 7; -- case 7 is the last inserted id
 UPDATE tel SET number = 98178, type = 'home' WHERE id = 156 AND user_id = 7;
 INSET INTO tel ( number, type, user_id ) VALUES ( 98178, 'home', 7 );
 INSET INTO tel ( number, type, user_id ) VALUES ( 98178, 'home', 7 );
@@ -789,6 +774,25 @@ COMMIT;</code></pre>
 <p>Se no lugar usarmos <b>tel:add</b> a operação <b>REMOVE</b> seria poupada.
 
 
+<div style=color:#aaa>
+<h4>select update insert insert_update (ideia)</h4>
+<p>Ao especificar o modelo a macro <strong>sql </strong>não poderá ser usada, no lugar deve-se utilizar as macros <strong>select</strong>, <strong>update</strong>,  <strong>insert</strong>, <strong>insert_update</strong>. Comportamento para insert e update podem ser especificados ao mesmo tempo com <strong>insert_update</strong>.
+<p> <strong>Atenção: </strong>Se for passado <strong>update</strong> e não o <strong>insert</strong> ao se fazer um insert o modelo irá se comportar como se não houvesse a coluna. Caso se queira utilizar algum comportamento para o insert séra possível especificar  outro comportamento da coluna (atributo) separadamente. Por exemplo:
+</div>
+<pre><code class="php" style=opacity:.6>$db-&gt;model11-&gt;set_model(array(
+  'field:select(col1 + col2)',
+  'field:update( ? + 3)', // mesma coluna
+  'field:text(5-100)' // para o caso do insert / add
+  'field2'
+));<br>// mesma coisa seria:<br>$db-&gt;model11-&gt;set_model(array(
+  'field:select(col1 + col2):update( ? + 3)', // select e update
+  'field:text(5-100)' // para o caso do insert
+  'field2'
+));<br>// já isto funcionaria diferente:<br>$db-&gt;model11-&gt;set_model(array(
+  'field:select(col1 + col2):update( ? + 3):text(5-100)', // insert não foi definido
+  'field2'
+));
+</code></pre>
 
 
 
@@ -811,11 +815,10 @@ COMMIT;</code></pre>
 <div id=sidebar> 
 	<ul>
 		<li class=class style="padding-top:0 !important"><a href="#db-class">Classe DB</a></li>
-		<li><a href="#db-select-db">DB::select_db</a></li>
-		<li><a href="#db-last-id">DB::inset_id</a></li>
+		<li><a href="#db-last-id">DB::last_id</a></li>
 		<li><a href="#db-escape">DB::escape</a></li>
 		<li><a href="#db-charset">DB::charset</a></li>
-		<li><a href="#db-error_mode">DB::error_mode</a></li>
+		<li><a href="#db-error-mode">DB::error_mode</a></li>
 		<li><a href="#db-echo_queries">DB::echo_queries</a></li>
 		<li><a href="#db-begin">DB::begin</a></li>
 		<li><a href="#db-commit">DB::commit</a></li>
@@ -823,7 +826,7 @@ COMMIT;</code></pre>
 		<li><a href="#db-end">DB::end</a></li>
 		<li><a href="#db-errors">DB::errors</a></li>
 		<li><a href="#db-db-error">DB::db_error</a></li>
-		<li><a href="#db-db-errno">DB::db_errno</a></li>
+		<!-- <li><a href="#db-db-errno">DB::db_errno</a></li> -->
 		<li><a href="#db-query">DB::query</a></li>
 		<li><a href="#db-fetch">DB::fetch</a></li>
 		<li><a href="#db-fetch-all">DB::fetch_all</a></li>

@@ -129,6 +129,10 @@ if( isset($attr['sql'])  ){
 	}elseif( $value === true ){
 		$value = "1";
 		return true;
+	}elseif( is_int($value) or is_float($value) ){
+		$value &= ''.$value;
+		$attr['sql'] = true;
+		return true;
 	}else{
 		$value = $this->db->escape( $value );
 		return true;

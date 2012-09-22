@@ -10,8 +10,24 @@ foreach( $w as $c => $v ){
 		if( $v === 'or' or $v === 'OR' ){
 			$q[] = " OR ";
 		}else{
-			$o = htmlspecialchars($v);
-			$this->db->fire_error("Operador desconhecido: <strong>$o</strong>");
+			$v = Decoder::decode_string($v);
+			if( !$or ){
+				$q[] = ' AND `';
+			}else{
+				$q[] = '`';
+			}
+			if( isset($v['null']) ){
+				$q[] = $this->db->escape($v[0]);
+				$q[] = '`';
+				$q[] = " IS NULL ";
+			}elseif( isset($v['not_null']) ){
+				$q[] = $this->db->escape($v[0]);
+				$q[] = '`';
+				$q[] = " IS NOT NULL ";
+			}else{
+				$o = htmlspecialchars($v);
+				$this->db->fire_error("Operador desconhecido: <strong>$o</strong>");
+			}
 		}
 		$count++;
 		$or = true;
@@ -36,6 +52,8 @@ foreach( $w as $c => $v ){
 			$q[] = '` <= ';
 		elseif( isset($c['in']) )
 			$q[] = '` in ';
+		elseif( isset($c['between']) )
+			$q[] = '` BETWEEN ';
 		else
 			$q[] = '` = ';
 		if( isset($c['sql']) ){
@@ -59,6 +77,12 @@ foreach( $w as $c => $v ){
 					$b = true;
 				}
 				$q[] = ')';
+			}elseif( isset($c['between']) ){
+				$q[] = '\'';
+				$q[] = $this->db->escape($v[0]);
+				$q[] = '\' AND \'';
+				$q[] = $this->db->escape($v[1]);
+				$q[] = '\'';
 			}else{
 				// verficar se v está normal
 				$q[] = '\'';

@@ -1,5 +1,8 @@
 <?php
 
+// tomar cuidado com isset em arrays
+// se for null irá retornar false
+// use array_key_exists no lugar
 class Model implements arrayaccess, Countable{
 
 	private $db;
@@ -158,7 +161,7 @@ class Model implements arrayaccess, Countable{
 		'date_time' => true );
 	// microtime, date_time, required, length_gt, length_lt, gt, lt
 	private $macros_alias = array('num'=>'numeric','int'=>'integer');
-	private $macros_not = array('int'=>'date','integer'=>'date');
+	private $macros_not_type = array('sql'=>true,'serialize'=>true,'now'=>true);  
 	private $macros_optional_params = array('date'=>true,'text'=>true,'sql'=>true); // numeric(size)
 	private $macros_required_params = array('format'=>true);
 	private $macros_dont_need_value = array( 'now' => true );
@@ -173,8 +176,8 @@ class Model implements arrayaccess, Countable{
 		// verifica valores mal formatados -> add_error
 		foreach( $es as $k => $e ){
 			// não valida o valor passado
-			$this->validate_macros( $e, isset($es[$k][1]) );
-			if( isset($es[$k][1]) ){
+			$this->validate_macros( $e, array_key_exists(1,$es[$k]) );
+			if( array_key_exists(1,$es[$k]) ){
 				$r = $this->value( $es[$k], $es[$k][1] );
 			}else{
 				$value;
@@ -192,58 +195,91 @@ class Model implements arrayaccess, Countable{
 	public function validate_macros( &$e, $with_value ){
 		$msg = array();
 		$macro_need_value = true;
-		foreach( $e as $macro => $params ){
-			if( $macro === 0 or $macro === 1 )continue;
-			if( !isset($this->macros[$macro]) ){
-				$msg[] = 'Invalid macro "';
-				$msg[] = $macro;
-				$msg[] = '"! ';
-				if( isset($this->macros[strtolower($macro)]) ){
-					$msg[] = 'Use lower case in macros. ';
-				}elseif( isset($this->macros[trim($macro)]) ){
-					$msg[] = 'Be aware of white spaces in macros. ';
-				}elseif( isset($this->macros[trim(strtolower($macro))]) ){
-					$msg[] = 'Use lower case and no white spaces in macros. ';
-				}
-				continue;
+		$typed = 0;
+		if( isset($e['now']) ){
+			$c = count($e);
+			if( $with_value ){
+				$c--;
+				$msg[] = 'Índice "';
+				$msg[] = $e[0];
+				$msg[] = '" deve ser usado sem valor! Macro "now" é usada sem valor. ';
 			}
-			if( isset($this->macros_not[$macro]) and isset($e[$this->macros_not[$macro]]) ){
-				$msg[] = 'Redundancy! Dont use "';
-				$msg[] = $macro;
-				$msg[] = '" with "';
-				$msg[] = $this->macros_alias[$macro];
-				$msg[] = '"! ';
+			if( $e['now'] !== true ){
+				$msg[] = 'Macro "now" deve ser usada sem parametros. ';
 			}
-			if( isset($this->macros_alias[$macro]) and isset($e[$this->macros_alias[$macro]]) ){
-				$msg[] = 'Redundancy! Dont use "';
-				$msg[] = $macro;
-				$msg[] = '" with "';
-				$msg[] = $this->macros_alias[$macro];
-				$msg[] = '"! ';
+			if( $c > 2 ){
+				$msg[] = 'Macro "now" deve ser usada sozinha. ';
 			}
-			if( isset($this->macros_required_params[$macro]) and $params === true ){
-				$msg[] = 'Macro "';
-				$msg[] = $macro;
-				$msg[] = '" needs parameters! ';
-			}
-			if( isset($this->macros_dont_need_value[$macro]) ){
-				$macro_need_value = false;
-				if( $with_value ){
-					$msg[] = 'Índice "';
-					$msg[] = $e[0];
-					$msg[] = '" deve ser usado sem valor! Macro :';
+		}else{
+			foreach( $e as $macro => $params ){
+				if( $macro === 0 or $macro === 1 )continue;
+				if( !isset($this->macros[$macro]) ){
+					$msg[] = 'Macro "';
 					$msg[] = $macro;
-					$msg[] = ' é usada sem valor.';
+					$msg[] = '" desconhecida. ';
+					if( isset($this->macros[strtolower($macro)]) ){
+						$msg[] = 'Use lower case in macros. ';
+					}elseif( isset($this->macros[trim($macro)]) ){
+						$msg[] = 'Be aware of white spaces in macros. ';
+					}elseif( isset($this->macros[trim(strtolower($macro))]) ){
+						$msg[] = 'Use lower case and no white spaces in macros. ';
+					}
+					continue;
+				}
+				if( isset($this->macros_alias[$macro]) and isset($e[$this->macros_alias[$macro]]) ){
+					$msg[] = 'Redundancy! Dont use "';
+					$msg[] = $macro;
+					$msg[] = '" with "';
+					$msg[] = $this->macros_alias[$macro];
+					$msg[] = '"! ';
+				}elseif( !isset($this->macros_not_type[$macro]) ){
+					$typed++;
+				}
+				if( isset($this->macros_required_params[$macro]) and $params === true ){
+					$msg[] = 'Macro "';
+					$msg[] = $macro;
+					$msg[] = '" needs parameters! ';
+				}
+				if( isset($this->macros_dont_need_value[$macro]) ){
+					$macro_need_value = false;
+					if( $with_value ){
+						$msg[] = 'Índice "';
+						$msg[] = $e[0];
+						$msg[] = '" deve ser usado sem valor! Macro :';
+						$msg[] = $macro;
+						$msg[] = ' é usada sem valor. ';
+					}
 				}
 			}
+			if( $typed > 1 ){
+				$ms = array();
+				foreach( $e as $macro => $p ){
+					if( $macro === 0 or $macro === 1 )continue;
+					if( !isset($this->macros_not_type[$macro]) ){
+						if( !isset($this->macros_alias[$macro]) or !isset($e[$this->macros_alias[$macro]]) )
+							$ms[] = $macro;
+					}
+				}
+				$msg[] = 'Dont use ';
+				foreach( $ms as $k => $m ){
+					$msg[] = $m;
+					if( count($ms) === $k+2 ){
+						$msg[] = ' and ';
+					}else if( count($ms) !== $k+1 ){
+						$msg[] = ', ';
+					}
+				}
+				$msg[] = ' together! ';
+			}
+			if( $macro_need_value and !$with_value ){
+				$msg[] = 'Índice "';
+				$msg[] = $e[0];
+				$msg[] = '" deve ser ter algum valor!';
+			}
 		}
-		if( $macro_need_value and !$with_value ){
-			$msg[] = 'Índice "';
-			$msg[] = $e[0];
-			$msg[] = '" deve ser ter algum valor!';
-		}
-		if( count($msg) )
+		if( count($msg) ){
 			$this->db->fire_error(join('',$msg));
+		}
 	}
 
 
@@ -339,10 +375,6 @@ class Model implements arrayaccess, Countable{
 		return $r;
 	}
 
-	private $valid_macros = array('date'=>true,'time'=>true,'date_time'=>true,
-		'sql'=>true,'int'=>true,'decimal'=>true,'trim'=>true,'bool'=>true,
-		'now'=>true,'format'=>true,'parse'=>true);
-
 	public function build_args( &$args, &$parameters=false ){
 		include 'build_args.php';
 	}
@@ -389,6 +421,8 @@ class Model implements arrayaccess, Countable{
 		$r = $this->db->_query(implode('',$sql));
 		return $r->fetch();
 	}
+
+
 	public function remove_where( $w ){
 		// $w =& Decoder::decode_array( $w );
 		// $this->validate_where( $w );
@@ -410,18 +444,19 @@ class Model implements arrayaccess, Countable{
 		$this->_set_where( $id, $v );
 	}
 
-	public function all(){
-		$t = $this->__toString();
-		return $this->db->_query("SELECT * FROM $t");
-	}
-
-
 	function sql_where( &$q, &$w ){
 		include 'sql_where.php';
 	}
 
 
 
+
+
+
+	public function all(){
+		$t = $this->__toString();
+		return $this->db->_query("SELECT * FROM $t");
+	}
 
 
 	// adiciona erro a transacao
