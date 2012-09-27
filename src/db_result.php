@@ -110,4 +110,11 @@ class DB_Result implements arrayaccess, Countable, Iterator{
 		if( $k.'' === ''.((int)$k) )
 			return $k >= 0 and $this->count() > $k;
 	}
+	function to_array(){
+		$a = array();
+		foreach( $this as $c => $v ){
+			$a[$c] = $v;
+		}
+		return $a;
+	}
 }
