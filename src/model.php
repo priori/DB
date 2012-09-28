@@ -48,9 +48,9 @@ class Model implements arrayaccess, Countable{
 		if( !is_array($args) ){
 			$this->db->fire_error('Argumento inválido, para valores espera-se um array');
 		}
-		$args =& Decoder::decode_array( $args );
+		$args = Decoder::decode_array( $args );
 		if( is_array($id) ){
-			$id =& $this->build_id( $id );
+			$id = $this->build_id( $id );
 		}
 		if( is_object($id) or is_resource($id) ){
 			$this->db->fire_error("Invalid arguments. Id can't be a object.");
