@@ -131,7 +131,8 @@ class Model implements arrayaccess, Countable{
 				$q[] = $attr[1];
 			}else{
 				$q[] = '\'';
-				$q[] = $this->db->escape($attr[1]);
+				// $q[] = $this->db->escape($attr[1]);
+				$q[] = $attr[1];
 				$q[] = '\'';
 			}
 			// $this->sql_value( $q, $v, $attr, $name );
