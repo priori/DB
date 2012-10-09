@@ -145,6 +145,8 @@ class DB{
 			}
 			if( isset($h['user']) )
 				$u = $h['user'];
+			else
+				$u = false;
 			if( isset($h['password']) )
 				$p = $h['password'];
 			if( isset($h['dbname']) )
@@ -162,7 +164,6 @@ class DB{
 				$h = $h['host'];
 			else
 				$h = 'localhost';
-			$u = false;
 		}else{
 			if( $h and !is_string($h) )
 				$this->fire_error('Valor inválido para host.');
