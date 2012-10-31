@@ -9,9 +9,9 @@ def run_test()
 	#	system('cls')
 	#else
 	#	if (RbConfig::CONFIG['host_os'] =~ /cygwin/) then 
-			system('clear')
+	#  	system('clear')
 	#	else
-	#		 puts "\e[H\e[2J"
+			 puts "\e[H\e[2J"
 	#	end
 	#end
 	puts "Running #{file}"
