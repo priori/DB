@@ -48,9 +48,9 @@ class Model implements arrayaccess, Countable{
 		if( !is_array($args) ){
 			$this->db->fire_error('Argumento inválido, para valores espera-se um array');
 		}
-		$args =& Decoder::decode_array( $args );
+		$args = Decoder::decode_array( $args );
 		if( is_array($id) ){
-			$id =& $this->build_id( $id );
+			$id = $this->build_id( $id );
 		}
 		if( is_object($id) or is_resource($id) ){
 			$this->db->fire_error("Invalid arguments. Id can't be a object.");
@@ -125,13 +125,14 @@ class Model implements arrayaccess, Countable{
 				$v = $attr[1];
 			}else{
 				$this->db->fire_error('Chave sem valor!');
-				return;
+				return false;
 			}
 			if( isset($attr['sql']) ){
 				$q[] = $attr[1];
 			}else{
 				$q[] = '\'';
-				$q[] = $this->db->escape($attr[1]);
+				// $q[] = $this->db->escape($attr[1]);
+				$q[] = $attr[1];
 				$q[] = '\'';
 			}
 			// $this->sql_value( $q, $v, $attr, $name );
@@ -143,7 +144,7 @@ class Model implements arrayaccess, Countable{
 		}else{
 			$this->sql_where_id_eq( $q, $id);
 		}
-		return $this->db->_query(implode('',$q));
+		return !!$this->db->_query(implode('',$q));
 	}
 
 	// add, insert
@@ -290,7 +291,7 @@ class Model implements arrayaccess, Countable{
 		$e = Decoder::decode_array( $e );
 		$vals = false;
 		if( !$this->validate($e,$vals,'add') ){ // e o replace?
-			return;
+			return false;
 		}
 		return $this->__add($e,$replace);
 	}
@@ -342,7 +343,7 @@ class Model implements arrayaccess, Countable{
 		}
 		$q[] = ')';
 
-		return $this->db->_query(implode('',$q));
+		return !!$this->db->_query(implode('',$q));
 	}
 
 	// quando não usa aspas
@@ -397,7 +398,7 @@ class Model implements arrayaccess, Countable{
 		}else{
 			$this->sql_where_id_eq( $sql, $id );
 		}
-		return $this->db->_query(implode('',$sql));
+		return !!$this->db->_query(implode('',$sql));
 	}
 
    // get
@@ -428,7 +429,7 @@ class Model implements arrayaccess, Countable{
 		$t = $this->__toString();
 		$q = array("DELETE FROM $t");
 		$this->sql_where( $q, $w );
-		return $this->db->_query(implode($q));
+		return !!$this->db->_query(implode($q));
 	}
 	function get_where( $w ){
 		// $w =& Decoder::decode_array( $w );
@@ -578,7 +579,7 @@ class Model implements arrayaccess, Countable{
 			if( !is_array($val) ){
 				$this->db->fire_error('Argumento inválido, para valores espera-se um array');
 			}
-			$val =& Decoder::decode_array( $val );
+			$val = Decoder::decode_array( $val );
 			// id pode ser array, object, resource??
 			// if( $this->db->errors() )return;
 			return $this->_set( $id, $val );
@@ -588,7 +589,7 @@ class Model implements arrayaccess, Countable{
 		$t = $this->__toString();
 		$sql = array("DELETE FROM $t ");
 		$this->sql_where_id_eq( $sql, $id );
-		return $this->db->_query(implode('',$sql));
+		return !!$this->db->_query(implode('',$sql));
 	}
 
    // get
@@ -607,13 +608,13 @@ class Model implements arrayaccess, Countable{
 		$sql = array("SELECT 1 FROM $t ");
 		$this->sql_where_id_eq($sql,$id);
 		$r = $this->db->_query(implode('',$sql));
-		return $r->num_rows() > 0;
+		return $r->count() > 0;
 	}
 	function count(){
 		$t = $this->__toString();
 		$r = $this->db->_query("SELECT COUNT(*) AS c FROM $t");
 		$r = $r->fetch();
-		return $r['c'];
+		return (int)$r['c'];
 	}
 	function truncate(){
 		$t = $this->__toString();

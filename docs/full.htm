@@ -766,7 +766,7 @@ esta macro é util para poupar o banco de dados uma operação <b>remove</b>.
 <p>Gerariamos SQLs assim:
 <pre><code class="sql">BEGIN;
 INSET INTO user ( name, tel ) VALUES ( 5, 99 );
-REMOVE tel WHERE id NOT IN (5,99) AND user_id = 7; -- case 7 is the last inserted id
+REMOVE tel WHERE id NOT IN (5,99,156) AND user_id = 7; -- case 7 is the last inserted id
 UPDATE tel SET number = 98178, type = 'home' WHERE id = 156 AND user_id = 7;
 INSET INTO tel ( number, type, user_id ) VALUES ( 98178, 'home', 7 );
 INSET INTO tel ( number, type, user_id ) VALUES ( 98178, 'home', 7 );

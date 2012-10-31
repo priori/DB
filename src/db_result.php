@@ -73,14 +73,13 @@ class DB_Result implements arrayaccess, Countable, Iterator{
 	}
 	
 	private $current;
-	private $count = 0;
+	private $count = -1;
 	function rewind(){
 		$this->data_seek(0);
-		$this->count = 0;
+		$this->count = -1;
 		$this->current = $this->fetch();
 	}
 	function next() {
-		$this->count++;
 		$this->current = $this->fetch();
 	}
 	function current() {
@@ -110,5 +109,12 @@ class DB_Result implements arrayaccess, Countable, Iterator{
 	function offsetExists($k){
 		if( $k.'' === ''.((int)$k) )
 			return $k >= 0 and $this->count() > $k;
+	}
+	function to_array(){
+		$a = array();
+		foreach( $this as $c => $v ){
+			$a[$c] = $v;
+		}
+		return $a;
 	}
 }
