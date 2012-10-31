@@ -337,7 +337,8 @@ class Model implements arrayaccess, Countable{
 				$q[] = $value;
 			}else{
 				$q[] = '\'';
-				$q[] = $this->db->escape($value);
+				// $q[] = $this->db->escape($value);
+				$q[] = $value;
 				$q[] = '\'';
 			}
 		}
